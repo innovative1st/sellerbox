@@ -21,13 +21,18 @@ import com.seller.box.exception.NoDataFoundException;
 import com.seller.box.exception.SellerClientException;
 import com.seller.box.utils.SBConstant;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
+@Api(tags= "Product", position = 0, value="Product", description="API to retrieve or manipulate product related information.")
 @RequestMapping("/product")
 public class ProductController {
 	@Autowired
 	ProductSearchDao productSearchDao;
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "unused" })
+	@ApiOperation(value = "Get product details")
 	@PostMapping(value = "/getProductInfo", 
 			 produces = {MediaType.APPLICATION_JSON_VALUE})
 	public ResponseEntity<Object> getProductDetailsInfo(@RequestParam(name="guid") String guid, 

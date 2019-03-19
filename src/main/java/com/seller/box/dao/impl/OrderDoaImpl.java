@@ -1,5 +1,6 @@
 package com.seller.box.dao.impl;
 
+import java.io.File;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -21,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.seller.box.dao.EdiConfigDao;
 import com.seller.box.dao.EdiPicklistDao;
-import com.seller.box.dao.EdiShipmentHdrDao;
+import com.seller.box.dao.EdiShipmentDao;
 import com.seller.box.dao.OrderDao;
 import com.seller.box.entities.EdiPicklist;
 import com.seller.box.entities.ReadyToShip;
@@ -38,9 +39,9 @@ public class OrderDoaImpl implements OrderDao {
 	@Autowired
 	EdiPicklistDao picklistDao;
 	@Autowired
-	EdiShipmentHdrDao ediShipmentHdrDao;
+	EdiShipmentDao ediShipmentHdrDao;
 	@PersistenceContext
-    private EntityManager em;
+    EntityManager em;
 
 	@Override
 	public List<EdiPicklist> findReadyToPick(Integer etailorId, String locationCode, String picklistFor, String picklistStatus) {
@@ -281,4 +282,79 @@ public class OrderDoaImpl implements OrderDao {
 		return response;
 	}
 
+	@Override
+	public Long getEdiOrderIdForPacking(int etailorId, String locationCode, String picklistNumber, String ean) {
+		Long ediOrderId = 0L;
+		try {
+			StringBuffer query = new StringBuffer("SELECT EDI_ORDER_ID FROM SELLER.EDI_SCAN_EAN ");
+			query.append("WHERE WAREHOUSE_CODE = '").append(locationCode).append("'");
+			query.append(" AND ERETAILOR_ID = ").append(etailorId);
+			query.append(" AND PICKLIST_NUMBER = '").append(picklistNumber).append("'");
+			query.append(" AND EAN = '").append(ean).append("'");
+			Query sql = em.createNativeQuery(query.toString());
+			List<?> result = sql.getResultList();
+			if(!result.isEmpty()) {
+				if(result.size() > 0) {
+					Object[] rows = (Object[]) result.get(0);
+					ediOrderId = (Long) rows[0];
+				}
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return ediOrderId;
+	}
+
+	@Override
+	public String getInvoiceFilepath(String shipmentId) {
+		String invoceFilepath = null;
+		try {
+			StringBuffer query = new StringBuffer("SELECT INVOICE_FILE_PATH FROM SELLER.EDI_SHIPMENT_INVOICE ");
+			query.append("WHERE PURCHASE_ORDER_NUMBER = '").append(shipmentId).append("'");
+			Query sql = em.createNativeQuery(query.toString());
+			List<?> result = sql.getResultList();
+			if(!result.isEmpty()) {
+				if(result.size() > 0) {
+					Object[] rows = (Object[]) result.get(0);
+					invoceFilepath = (String) rows[0];
+				}
+			} else {
+				if(SBUtils.isNull(invoceFilepath)) {
+					invoceFilepath = this.getInvoiceFilepathFromSource(shipmentId);
+				}
+			}
+		} catch (Exception e) {
+			invoceFilepath = this.getInvoiceFilepathFromSource(shipmentId);
+		}
+		return invoceFilepath;
+	}
+
+    private String getInvoiceFilepathFromSource(String shipmentId) {
+        String invFilepath = null;
+        try {
+            invFilepath = SBUtils.getPropertyValue("seller.edi.invoice.path");
+            if (!invFilepath.endsWith("\\")) {
+                invFilepath = invFilepath + "\\";
+            }
+            boolean isAvailable = false;
+            File invoice = new File(invFilepath);
+            if (invoice.exists()) {
+                File[] invoiceList = invoice.listFiles();
+                for (int i = 0; i < invoiceList.length; i++) {
+                    if (invoiceList[i].getName().startsWith(shipmentId)) {
+                        isAvailable = true;
+                        invFilepath = invFilepath + invoiceList[i].getName();
+                        break;
+                    }
+                }
+                if (!isAvailable) {
+                    invFilepath = null;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return invFilepath;
+    }
 }

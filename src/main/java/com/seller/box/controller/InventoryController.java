@@ -2,14 +2,14 @@ package com.seller.box.controller;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,17 +25,19 @@ import com.seller.box.dao.EdiConfigDao;
 import com.seller.box.dao.EdiInventoryIanDao;
 import com.seller.box.dao.VirtualInventorySearchDao;
 import com.seller.box.entities.EdiInventoryIan;
-import com.seller.box.entities.ShipmentHdrWithItem;
 import com.seller.box.entities.VirtualInventorySearch;
 import com.seller.box.exception.NoDataFoundException;
 import com.seller.box.exception.SellerClientException;
 import com.seller.box.form.EdiInventoryIanForm;
-import com.seller.box.form.PicklistSearchForm;
 import com.seller.box.form.VirtualInventoryForm;
 import com.seller.box.utils.SBConstant;
 import com.seller.box.utils.SBUtils;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
+@Api(tags= {"Inventory"}, position = 1, value="Product", description="API to retrieve or manipulate product related information.")
 @RequestMapping("/inventory")
 public class InventoryController {
 	@Autowired
@@ -47,10 +49,11 @@ public class InventoryController {
 	@Autowired
 	EdiConfigDao configDao;
 	
+	@ApiOperation(value = "View status of virtual inventory")
 	@PostMapping(value = "/virtualInventoryStatus", 
 				 produces = {MediaType.APPLICATION_JSON_VALUE},
 				 consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-	public ResponseEntity<Page<VirtualInventorySearch>> getAllInventoryPagable(@RequestParam(name="guid") String guid, 
+	public ResponseEntity<List<VirtualInventorySearch>> getAllInventoryPagable(@RequestParam(name="guid") String guid, 
 			  										  						   @RequestParam(name="token") String token, 
 			  										  						   @RequestParam(name = "RequestBody") String body){
 		VirtualInventoryForm criteria = new VirtualInventoryForm();
@@ -80,12 +83,12 @@ public class InventoryController {
 			
 			throw new SellerClientException("Following arguments "+args+" is mandatory to getAllInventoryPagable(...)");
 		} 
-		Pageable pagable = PageRequest.of(page, size);
-		Page<VirtualInventorySearch> result = null;
+		//Pageable pagable = new PageRequest(page, size);
+		List<VirtualInventorySearch> result = null;
 		if(criteria.getLocationCode() != null && criteria.getEtailorId() != 0 && criteria.getSkuCode() == null) {
-			result = (Page<VirtualInventorySearch>) vInventoryDao.findAllPagable(criteria.getEtailorId(), criteria.getLocationCode(), pagable);
+			result = (List<VirtualInventorySearch>) vInventoryDao.findAllPagable(criteria.getEtailorId(), criteria.getLocationCode());
 		} else if(criteria.getLocationCode() != null && criteria.getEtailorId() != 0 && criteria.getSkuCode() != null) {
-			result = (Page<VirtualInventorySearch>) vInventoryDao.findAllWithSkuPagable(criteria.getEtailorId(), criteria.getLocationCode(), criteria.getSkuCode(), pagable);
+			result = (List<VirtualInventorySearch>) vInventoryDao.findAllWithSkuPagable(criteria.getEtailorId(), criteria.getLocationCode(), criteria.getSkuCode());
 		} 
 		if(result == null) {
 			NoDataFoundException sse = new NoDataFoundException("There are no product/inventory status based on provided criteria.");
@@ -95,36 +98,73 @@ public class InventoryController {
 			sse.setServiceName("/inventory/viAdvanceSearch");
 			throw sse;
 		} else {
-			return new ResponseEntity<Page<VirtualInventorySearch>>(result, HttpStatus.OK);
+			return new ResponseEntity<List<VirtualInventorySearch>>(result, HttpStatus.OK);
 		}
 	}
 	
+	@ApiOperation(value = "View virtual inventory", hidden = true)
 	@PostMapping(value = "/viBasicSearch", 
 			 produces = {MediaType.APPLICATION_JSON_VALUE})
-	public Page<VirtualInventorySearch> virtuenInventoryBasicSearch(@RequestParam(name = "etailorId") Optional<Integer> etailorId, @RequestParam(name = "value") String value){
-		Page<VirtualInventorySearch> result = null;
+	public List<VirtualInventorySearch> virtuenInventoryBasicSearch(@RequestParam(name = "etailorId") Optional<Integer> etailorId, @RequestParam(name = "value") String value){
+		List<VirtualInventorySearch> result = null;
 		int page = 0;
 		int size = SBConstant.DEFAULT_PAGE_SIZE;
 		if((value != null && !value.isEmpty() && value != "") && (etailorId.isPresent())) {
-			Pageable pagable = PageRequest.of(page, size);
-			result = (Page<VirtualInventorySearch>) vInventoryDao.findAllInventoryOnBasicSearchWithEtailor(etailorId.get(), value, pagable);
+			//Pageable pagable = new PageRequest(page, size);
+			result = (List<VirtualInventorySearch>) vInventoryDao.findAllInventoryOnBasicSearchWithEtailor(etailorId.get(), value);
 		} else if((value != null && !value.isEmpty() && value != "") && (!etailorId.isPresent())) {
-			Pageable pagable = PageRequest.of(page, size);
-			result = (Page<VirtualInventorySearch>) vInventoryDao.findAllInventoryOnBasicSearch(value, pagable);
+			//Pageable pagable = new PageRequest(page, size);
+			result = (List<VirtualInventorySearch>) vInventoryDao.findAllInventoryOnBasicSearch(value);
 		} else {
 			throw new SellerClientException("Invalid argument passed to viBasicSearch(...), value is null");
 		}
 		return result;
 	}
 	
-	@PostMapping(value = "/inventoryStatusLost",
+	@SuppressWarnings("unchecked")
+	@ApiOperation(value = "View inventory status for lost(Outbound)")
+	@PostMapping(value = "/inventoryStatusForLost",
 			produces = {MediaType.APPLICATION_JSON_VALUE})
-	public int getQueueQuantityForLost(@RequestParam(name = "etailorId") int etailorId, 
-											  @RequestParam(name = "locationCode") String locationCode, 
-											  @RequestParam(name = "skuCode") String skuCode) {
-		return vInventoryDao.getQueueQuantityForLost(etailorId, locationCode, skuCode);
+	public int getQueueQuantityForLost(@RequestParam(name="guid") String guid, 
+				   					   @RequestParam(name="token") String token, 
+				   					   @RequestParam(name = "RequestBody") String body) {
+		Map<String, Object> bodyMap = null;
+		int etailorId		= 0; 
+		String locationCode	= null;
+		String skuCode		= null;
+		try {
+			bodyMap = new ObjectMapper().readValue(body, HashMap.class);
+			if(bodyMap.containsKey(SBConstant.VAR_ETAILOR_ID)) {
+				etailorId = (int) bodyMap.get(SBConstant.VAR_ETAILOR_ID);
+			}
+			if(bodyMap.containsKey(SBConstant.VAR_LOCATION_CODE)) {
+				locationCode = (String) bodyMap.get(SBConstant.VAR_LOCATION_CODE);
+			}
+			if(bodyMap.containsKey(SBConstant.VAR_SKU_CODE)) {
+				skuCode = (String) bodyMap.get(SBConstant.VAR_SKU_CODE);
+			}
+		} catch (IOException e) {
+			bodyMap = new HashMap<String, Object>();
+		}
+		if(etailorId == 0 || SBUtils.isNull(locationCode) || SBUtils.isNull(skuCode)) {
+			StringBuffer args = new StringBuffer();
+			if(SBUtils.isNull(locationCode)) {
+				args.append(SBConstant.VAR_LOCATION_CODE);
+			}
+			if(etailorId == 0) {
+				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_ETAILOR_ID);
+			}
+			if(SBUtils.isNull(skuCode)) {
+				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_SKU_CODE);
+			}
+			
+			throw new SellerClientException("Following arguments "+args.toString()+" is mandarory to getQueueQuantityForLost(...)");
+		} else {
+			return vInventoryDao.getQueueQuantityForLost(etailorId, locationCode, skuCode);
+		}
 	}
 	
+	@ApiOperation(value = "View live inventory status")
 	@PostMapping(value = "/inventoryStatus",
 			produces = {MediaType.APPLICATION_JSON_VALUE})
 	public int getAvailableStock(@RequestParam(name = "etailorId") int etailorId, 
@@ -133,6 +173,7 @@ public class InventoryController {
 		return vInventoryDao.getAvailableStock(etailorId, locationCode, skuCode);
 	}
 	
+	@ApiOperation(value = "Create inventory adjustment notification (IAN) for FOUND/LOST")
 	@PostMapping(value = "/makeIAN",
 			produces = {MediaType.APPLICATION_JSON_VALUE},
 			consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.APPLICATION_JSON_VALUE})

@@ -21,6 +21,7 @@ public interface OrderDao {
 
 	Map<String, Object> findPicklistStatus(int etailorId, String locationCode, String scanedValue);
 
-	
-	
+	Long getEdiOrderIdForPacking(int etailorId, String locationCode, String picklistNumber, String ean);
+
+	String getInvoiceFilepath(String shipmentId);
 }

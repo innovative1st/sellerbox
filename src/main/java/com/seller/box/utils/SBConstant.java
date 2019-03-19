@@ -60,6 +60,7 @@ public class SBConstant {
 	
 	
 	public static final String TXN_STATUS_SUCCESS		= "SUCCESS";
+	public static final String TXN_STATUS_DUPLICATE		= "DUPLICATE";
 	public static final String TXN_STATUS_PART_SUCCESS  = "PART_SUCCESS";
 	public static final String TXN_STATUS_FAILURE		= "FAILURE";
 	public static final String TXN_STATUS_EXCEPTION		= "EXCEPTION";
@@ -103,11 +104,15 @@ public class SBConstant {
 	public static final String ERROR_CODE_DATA_NOT_FOUND	= "0";
 	
 	
-
+	public static final String TXN_PARAM_STATUS		= "status";
+	
 	public static final String VAR_ETAILOR_ID		= "etailorId";
 	public static final String VAR_LOCATION_CODE	= "locationCode";
 	public static final String VAR_WAREHOUSE_CODE	= "warehouseCode";
+	public static final String VAR_EDI_ORDER_ID		= "ediOrderId";
 	public static final String VAR_PICKLIST_FOR		= "picklistFor";
+	public static final String VAR_PICKLIST_ID		= "picklistId";
+	public static final String VAR_PICKLIST_NUMBER	= "picklistNumber";
 	public static final String VAR_PICKLIST_STATUS	= "picklistStatus";
 	public static final String VAR_PICKUP_DATE		= "pickupDate";
 	public static final String VAR_PICKUP_OTHER_DATE= "pickupOtherDate";
@@ -116,6 +121,8 @@ public class SBConstant {
 	public static final String VAR_BATCH_SIZE		= "batchSize";
 	public static final String VAR_USERNAME			= "username";
 	public static final String VAR_SCANED_VALUE		= "scanedValue";
+	public static final String VAR_SKU_CODE			= "skuCode";
+	public static final String VAR_EAN 				= "ean";
 	
 	
 }

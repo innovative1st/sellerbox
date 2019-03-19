@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.seller.box.entities.EdiShipmentHdr;
 
 @Repository
-public interface EdiShipmentHdrDao extends CrudRepository<EdiShipmentHdr, Long>{
-	//No use yet
+public interface EdiShipmentDao extends CrudRepository<EdiShipmentHdr, Long>{
+	EdiShipmentHdr findByEdiOrderId(Long ediOrderId);
 }

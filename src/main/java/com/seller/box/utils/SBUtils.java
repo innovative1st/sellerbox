@@ -36,11 +36,21 @@ public class SBUtils {
     	return dateTime;
     }
     
-    public static boolean isNull(String value) {
+    public static boolean isNull(Object value) {
     	try {
-			if(value.isEmpty() || value == null) {
-				return true;
-			}
+    		if (value == null) {
+    			return true;
+    		} else {
+    			if (value instanceof String) {
+    				if(((String)value).isEmpty() || value == null) {
+    					return true;
+    				}
+    			} else if (value instanceof Integer) {
+    				if((Integer)value == 0) {
+    					return true;
+    				}
+    			}
+    		}
 		} catch (Exception e) {
 			return true;
 		}

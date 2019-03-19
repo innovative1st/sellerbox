@@ -137,7 +137,7 @@ public class EdiShipmentHdr implements Serializable{
 	@Column(name = "MANIFEST_ID")
 	private String manifestId;
 	@Column(name = "CARRIER_NAME")
-	private String carrierNmae;
+	private String carrierName;
 	@Column(name = "LOCAL_TIME_ZONE")
 	private String localTimeZone;
 	@Column(name = "PICKUP_DATE")
@@ -675,12 +675,12 @@ public class EdiShipmentHdr implements Serializable{
 		this.manifestId = manifestId;
 	}
 
-	public String getCarrierNmae() {
-		return carrierNmae;
+	public String getCarrierName() {
+		return carrierName;
 	}
 
-	public void setCarrierNmae(String carrierNmae) {
-		this.carrierNmae = carrierNmae;
+	public void setCarrierName(String carrierName) {
+		this.carrierName = carrierName;
 	}
 
 	public String getLocalTimeZone() {
