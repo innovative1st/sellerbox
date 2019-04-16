@@ -60,17 +60,29 @@ public class SBConstant {
 	
 	
 	public static final String TXN_STATUS_SUCCESS		= "SUCCESS";
-	public static final String TXN_STATUS_DUPLICATE		= "DUPLICATE";
-	public static final String TXN_STATUS_PART_SUCCESS  = "PART_SUCCESS";
-	public static final String TXN_STATUS_FAILURE		= "FAILURE";
 	public static final String TXN_STATUS_EXCEPTION		= "EXCEPTION";
+	public static final String TXN_STATUS_DUPLICATE		= "DUPLICATE";
+	public static final String TXN_STATUS_FAILURE		= "FAILURE";
+	public static final String TXN_STATUS_NO_DATA		= "NO_DATA_FOUND";
+	public static final String TXN_STATUS_PART_SUCCESS  = "PART_SUCCESS";
+	public static final String TXN_STATUS_WARNING   	= "WARN";
 	public static final String TXN_STATUS_INIT  		= "INIT";
+
+	public static final int TXN_RESPONSE_CODE_SUCCESS		= 0;
+	public static final int TXN_RESPONSE_CODE_EXCEPTION		= 1;
+	public static final int TXN_RESPONSE_CODE_DUPLICATE		= 2;
+	public static final int TXN_RESPONSE_CODE_FAILURE		= 3;
+	public static final int TXN_RESPONSE_CODE_NO_DATA		= 4;
+	public static final int TXN_RESPONSE_CODE_PART_SUCCESS  = 5;
+	public static final int TXN_RESPONSE_CODE_WARNING   	= 6;
+	public static final int TXN_RESPONSE_CODE_INIT  		= 7;
+	
 	
 	public static final String TXN_RESPONSE_STATUS			= "STATUS";
 	public static final String TXN_RESPONSE_REQUEST_ID		= "REQUEST_ID";
 	public static final String TXN_RESPONSE_PICKLIST_ID		= "PICKLIST_ID";
 	public static final String TXN_RESPONSE_PICKLIST_NUMBER	= "PICKLIST_NUMBER";
-	
+
 	
 	public static final String MESSAGE_TYPE_IAN 	= "IAN";
 	public static final String MESSAGE_TYPE_ILN 	= "ILN";
@@ -79,6 +91,8 @@ public class SBConstant {
 	public static final String MESSAGE_TYPE_OCR 	= "OCR";
 	public static final String MESSAGE_TYPE_CRN 	= "CRN";
 	public static final String MESSAGE_TYPE_OC  	= "OC";
+	public static final String MESSAGE_TYPE_OF  	= "OF";
+	public static final String MESSAGE_TYPE_INV  	= "INV";
 	public static final String MESSAGE_TYPE_PICKLIST= "PICKLIST";
 	
 	public static final String IAN_ADUSTMENT_TYPE_FOUND = "FOUND";
@@ -105,8 +119,9 @@ public class SBConstant {
 	
 	
 	public static final String TXN_PARAM_STATUS		= "status";
-	
+
 	public static final String VAR_ETAILOR_ID		= "etailorId";
+	public static final String VAR_REQUEST_ID		= "requestId";
 	public static final String VAR_LOCATION_CODE	= "locationCode";
 	public static final String VAR_WAREHOUSE_CODE	= "warehouseCode";
 	public static final String VAR_EDI_ORDER_ID		= "ediOrderId";
@@ -123,6 +138,8 @@ public class SBConstant {
 	public static final String VAR_SCANED_VALUE		= "scanedValue";
 	public static final String VAR_SKU_CODE			= "skuCode";
 	public static final String VAR_EAN 				= "ean";
+	
+	public static final String LOG_SEPRATOR 		    = "---> ";
 	
 	
 }

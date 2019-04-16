@@ -217,7 +217,7 @@ public class EdiShipmentHdr implements Serializable{
 	@Column(name = "REF_ORDER_ID")
 	private String refOrderId;
 	
-	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JoinColumn(name = "EDI_ORDER_ID", nullable = false)
 	private Set<EdiShipmentItems> ediShipmentItems;
@@ -995,11 +995,44 @@ public class EdiShipmentHdr implements Serializable{
 		this.ediShipmentItems = ediShipmentItems;
 	}
 
-//	public EdiShipmentInvoice getEdiShipmentInvoice() {
-//		return ediShipmentInvoice;
-//	}
-//
-//	public void setEdiShipmentInvoice(EdiShipmentInvoice ediShipmentInvoice) {
-//		this.ediShipmentInvoice = ediShipmentInvoice;
-//	}
+	@Override
+	public String toString() {
+		return "EdiShipmentHdr [ediOrderId=" + ediOrderId + ", etailorId=" + etailorId + ", shipmentId=" + shipmentId
+				+ ", orderId=" + orderId + ", billtoEntityId=" + billtoEntityId + ", warehouseCode=" + warehouseCode
+				+ ", orderDate=" + orderDate + ", exsdDate=" + exsdDate + ", boxType=" + boxType + ", isGift=" + isGift
+				+ ", isGiftWrap=" + isGiftWrap + ", isPriorityShipment=" + isPriorityShipment + ", isCod=" + isCod
+				+ ", isInsertsRequired=" + isInsertsRequired + ", paymentType=" + paymentType + ", currencyCode="
+				+ currencyCode + ", taxRate=" + taxRate + ", taxAmount=" + taxAmount + ", shipChargeAmount="
+				+ shipChargeAmount + ", subTotal=" + subTotal + ", orderTotal=" + orderTotal + ", balanceDue="
+				+ balanceDue + ", buyerName=" + buyerName + ", buyerAttentionLine=" + buyerAttentionLine
+				+ ", buyerAddressLine1=" + buyerAddressLine1 + ", buyerCity=" + buyerCity + ", buyerState=" + buyerState
+				+ ", buyerCountryCode=" + buyerCountryCode + ", buyerPostalCode=" + buyerPostalCode + ", orderSiteId="
+				+ orderSiteId + ", shipToName=" + shipToName + ", shipToAddressLine1=" + shipToAddressLine1
+				+ ", shipToAddressLine2=" + shipToAddressLine2 + ", shipToCity=" + shipToCity + ", shipToState="
+				+ shipToState + ", shipToCountryCode=" + shipToCountryCode + ", shipToCountryName=" + shipToCountryName
+				+ ", shipPostalCode=" + shipPostalCode + ", shipToContactPhone=" + shipToContactPhone + ", shipMethod="
+				+ shipMethod + ", billToName=" + billToName + ", billToAddressLine1=" + billToAddressLine1
+				+ ", billToAddressLine2=" + billToAddressLine2 + ", billToCity=" + billToCity + ", billToState="
+				+ billToState + ", billToCountryCode=" + billToCountryCode + ", billToCountryName=" + billToCountryName
+				+ ", billPostalCode=" + billPostalCode + ", billToContactPhone=" + billToContactPhone + ", packageId="
+				+ packageId + ", trackingId=" + trackingId + ", barcode=" + barcode + ", trailorId=" + trailorId
+				+ ", loadId=" + loadId + ", canManifest=" + canManifest + ", manifestId=" + manifestId
+				+ ", carrierName=" + carrierName + ", localTimeZone=" + localTimeZone + ", pickupDate=" + pickupDate
+				+ ", labelContent=" + labelContent + ", labelFormatType=" + labelFormatType + ", labelWidthValue="
+				+ labelWidthValue + ", labelWidthUnit=" + labelWidthUnit + ", labelLengthValue=" + labelLengthValue
+				+ ", labelLengthUnit=" + labelLengthUnit + ", packageLengthValue=" + packageLengthValue
+				+ ", packageLengthUnit=" + packageLengthUnit + ", packageWidthValue=" + packageWidthValue
+				+ ", packageWidthUnit=" + packageWidthUnit + ", packageHeightValue=" + packageHeightValue
+				+ ", packageHeightUnit=" + packageHeightUnit + ", packageWeightValue=" + packageWeightValue
+				+ ", packageWeightUnit=" + packageWeightUnit + ", braaPpType=" + braaPpType + ", braaPpTypeIdentifier="
+				+ braaPpTypeIdentifier + ", braaPpQuantity=" + braaPpQuantity + ", orderStatus=" + orderStatus
+				+ ", picklistNumber=" + picklistNumber + ", noOfItems=" + noOfItems + ", fulfilmentType="
+				+ fulfilmentType + ", processInstanceId=" + processInstanceId + ", orderFilePath=" + orderFilePath
+				+ ", shipLabelFilepath=" + shipLabelFilepath + ", createdBy=" + createdBy + ", createdDate="
+				+ createdDate + ", manifestDate=" + manifestDate + ", packedBy=" + packedBy + ", isAccepted="
+				+ isAccepted + ", isCanceled=" + isCanceled + ", isAsnSend=" + isAsnSend + ", isOmsUpload="
+				+ isOmsUpload + ", isMeasureDone=" + isMeasureDone + ", omsUploadErrorMsg=" + omsUploadErrorMsg
+				+ ", batchId=" + batchId + ", refOrderId=" + refOrderId + ", ediShipmentItems=" + ediShipmentItems
+				+ "]";
+	}
 }

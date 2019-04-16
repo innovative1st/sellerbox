@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -12,6 +14,7 @@ import javax.persistence.Table;
 public class EdiShipmentItems implements Serializable{
 	private static final long serialVersionUID = 1L;
 	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "EDI_ITEM_ID")
 	private Long ediItemId;
 	@Column(name = "EDI_ORDER_ID", updatable = false, insertable = false)
@@ -61,7 +64,7 @@ public class EdiShipmentItems implements Serializable{
 	@Column(name = "ORDER_ITEM_ID")
 	private String orderItemId;
 	@Column(name = "CUSTOMER_ORDER_ITEM_DETAIL_ID")
-	private int customerOrderItemDetailId;
+	private Long customerOrderItemDetailId;
 	@Column(name = "IS_CANCELED")
 	private int isCanceled;
 	@Column(name = "IS_ITEM_UPLOAD")
@@ -217,10 +220,10 @@ public class EdiShipmentItems implements Serializable{
 	public void setOrderItemId(String orderItemId) {
 		this.orderItemId = orderItemId;
 	}
-	public int getCustomerOrderItemDetailId() {
+	public Long getCustomerOrderItemDetailId() {
 		return customerOrderItemDetailId;
 	}
-	public void setCustomerOrderItemDetailId(int customerOrderItemDetailId) {
+	public void setCustomerOrderItemDetailId(Long customerOrderItemDetailId) {
 		this.customerOrderItemDetailId = customerOrderItemDetailId;
 	}
 	public int getIsCanceled() {
@@ -253,5 +256,18 @@ public class EdiShipmentItems implements Serializable{
 	public void setRefItemId(String refItemId) {
 		this.refItemId = refItemId;
 	}
-
+	@Override
+	public String toString() {
+		return "EdiShipmentItems [ediItemId=" + ediItemId + ", ediOrderId=" + ediOrderId + ", ean=" + ean
+				+ ", lineItemSeq=" + lineItemSeq + ", warehouseCode=" + warehouseCode + ", itemId=" + itemId
+				+ ", fnsku=" + fnsku + ", skuCode=" + skuCode + ", productName=" + productName + ", thumbnailUrl="
+				+ thumbnailUrl + ", quantity=" + quantity + ", qntFromInv=" + qntFromInv + ", qntFromVir=" + qntFromVir
+				+ ", currencyCode=" + currencyCode + ", customerPrice=" + customerPrice + ", lineItemTotal="
+				+ lineItemTotal + ", bayNo=" + bayNo + ", rackNo=" + rackNo + ", giftLabelContent=" + giftLabelContent
+				+ ", giftWrapId=" + giftWrapId + ", sellerOfRecordName=" + sellerOfRecordName + ", sellerOfRecordId="
+				+ sellerOfRecordId + ", merchantId=" + merchantId + ", orderItemId=" + orderItemId
+				+ ", customerOrderItemDetailId=" + customerOrderItemDetailId + ", isCanceled=" + isCanceled
+				+ ", isItemUpload=" + isItemUpload + ", isInvDeduct=" + isInvDeduct + ", invDeductErrorMsg="
+				+ invDeductErrorMsg + ", refItemId=" + refItemId + "]";
+	}
 }
