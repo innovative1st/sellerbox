@@ -67,6 +67,7 @@ public class SBConstant {
 	public static final String TXN_STATUS_PART_SUCCESS  = "PART_SUCCESS";
 	public static final String TXN_STATUS_WARNING   	= "WARN";
 	public static final String TXN_STATUS_INIT  		= "INIT";
+	public static final String TXN_STATUS_PRODUCE 		= "Produce";
 
 	public static final int TXN_RESPONSE_CODE_SUCCESS		= 0;
 	public static final int TXN_RESPONSE_CODE_EXCEPTION		= 1;
@@ -105,7 +106,7 @@ public class SBConstant {
 	public static final String IAN_LOCATION_TYPE_PENDING_CANCELLED  = "PENDING-CANCELLED";
 	
 	
-	
+	public static final String CRN_INVENTORY_LOCATION_CR 	= "CUSTOMER-RETURN";
 	
 	
 	
@@ -122,8 +123,10 @@ public class SBConstant {
 
 	public static final String VAR_ETAILOR_ID		= "etailorId";
 	public static final String VAR_REQUEST_ID		= "requestId";
-	public static final String VAR_LOCATION_CODE	= "locationCode";
+	//public static final String VAR_LOCATION_CODE	= "locationCode";
 	public static final String VAR_WAREHOUSE_CODE	= "warehouseCode";
+	public static final	String VAR_ORDER_TYPE		= "orderType";
+	public static final	String VAR_VENDOR_PARTY_ID	= "vendorPartyId";
 	public static final String VAR_EDI_ORDER_ID		= "ediOrderId";
 	public static final String VAR_PICKLIST_FOR		= "picklistFor";
 	public static final String VAR_PICKLIST_ID		= "picklistId";
@@ -137,7 +140,19 @@ public class SBConstant {
 	public static final String VAR_USERNAME			= "username";
 	public static final String VAR_SCANED_VALUE		= "scanedValue";
 	public static final String VAR_SKU_CODE			= "skuCode";
+	public static final String VAR_FNSKU			= "fnsku";
 	public static final String VAR_EAN 				= "ean";
+	public static final String VAR_QUANTITY			= "quantity";
+	public static final String VAR_OFR_ORDER_STATUS	= "orderStatus";
+	public static final String VAR_ADJUSTMENT_TYPE	= "adjustmentType";
+	public static final String VAR_PURCHASE_ORDER_NUMBER			= "purchaseOrderNumber";
+	public static final String VAR_INVENTORY_SOURCE_LOCATION		= "inventorySourceLocation";
+	public static final String VAR_INVENTORY_DESTINATION_LOCATION	= "inventoryDestinationLocation";
+	
+	public static final String OFR_RESPONSE_CONDITION= "SUCCESS";
+	public static final String OFR_RESULT_CODE		 = "00";
+	public static final String OFR_RESULT_DESC 		 = "Shipping 100 percent of ordered product";
+	
 	
 	public static final String LOG_SEPRATOR 		    = "---> ";
 	

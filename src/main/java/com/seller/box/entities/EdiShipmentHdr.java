@@ -22,6 +22,8 @@ public class EdiShipmentHdr implements Serializable{
 	@Id
 	@Column(name = "EDI_ORDER_ID")
 	private Long ediOrderId;
+	@Column(name = "ORDER_TYPE")
+	private String orderType;
 	@Column(name = "ERETAILOR_ID")
 	private int etailorId;
 	//@Column(name = "ERETAILOR_NAME")
@@ -233,6 +235,14 @@ public class EdiShipmentHdr implements Serializable{
 
 	public void setEdiOrderId(Long ediOrderId) {
 		this.ediOrderId = ediOrderId;
+	}
+
+	public String getOrderType() {
+		return orderType;
+	}
+
+	public void setOrderType(String orderType) {
+		this.orderType = orderType;
 	}
 
 	public int getEtailorId() {
@@ -997,7 +1007,7 @@ public class EdiShipmentHdr implements Serializable{
 
 	@Override
 	public String toString() {
-		return "EdiShipmentHdr [ediOrderId=" + ediOrderId + ", etailorId=" + etailorId + ", shipmentId=" + shipmentId
+		return "EdiShipmentHdr [ediOrderId=" + ediOrderId + ", orderType=" + orderType + ", etailorId=" + etailorId + ", shipmentId=" + shipmentId
 				+ ", orderId=" + orderId + ", billtoEntityId=" + billtoEntityId + ", warehouseCode=" + warehouseCode
 				+ ", orderDate=" + orderDate + ", exsdDate=" + exsdDate + ", boxType=" + boxType + ", isGift=" + isGift
 				+ ", isGiftWrap=" + isGiftWrap + ", isPriorityShipment=" + isPriorityShipment + ", isCod=" + isCod

@@ -44,9 +44,9 @@ public class OrderDoaImpl implements OrderDao {
     EntityManager em;
 
 	@Override
-	public List<EdiPicklist> findReadyToPick(Integer etailorId, String locationCode, String picklistFor, String picklistStatus) {
+	public List<EdiPicklist> findReadyToPick(Integer etailorId, String warehouseCode, String picklistFor, String picklistStatus) {
 		StringBuffer query = new StringBuffer(SBConstant.PICKLIST_SEARCH_QUERY);
-		query.append("WHERE WAREHOUSE_CODE = '").append(locationCode).append("'");
+		query.append("WHERE WAREHOUSE_CODE = '").append(warehouseCode).append("'");
 		query.append(" AND ERETAILOR_ID = ").append(etailorId);
 		if(picklistFor.equalsIgnoreCase(SBConstant.PICKLIST_FOR_ALL)) {
 			//not applicable
@@ -73,10 +73,11 @@ public class OrderDoaImpl implements OrderDao {
 	}
 
 	@Override
-	public List<ReadyToShip> findReadyToShip(int etailorId, String locationCode, String pickupDate, String pickupOtherDate, String carrierName) {
+	public List<ReadyToShip> findReadyToShip(int etailorId, String warehouseCode, String pickupDate, String pickupOtherDate, String carrierName) {
 		StringBuffer query = new StringBuffer(SBConstant.READY_TO_SHIP_SEARCH_QUERY);
-		query.append("WHERE ORDER_STATUS IN (8, 9)");
-		query.append(" AND WAREHOUSE_CODE = '").append(locationCode).append("'");
+		String readyToShipStatus = SBUtils.getPropertyValue("sb.ready.to.ship.status");
+		query.append("WHERE ORDER_STATUS IN ("+readyToShipStatus+")");
+		query.append(" AND WAREHOUSE_CODE = '").append(warehouseCode).append("'");
 		query.append(" AND ERETAILOR_ID = ").append(etailorId);
 		if(pickupDate.equalsIgnoreCase(SBConstant.PICKUP_DATE_ALL)) {
 			//not applicable
@@ -111,7 +112,7 @@ public class OrderDoaImpl implements OrderDao {
 		List<ShipmentHdrWithItem> newShipments = null;
 		try {
 			StringBuffer query = new StringBuffer(SBConstant.NEW_ORDER_SEARCH_QUERY);
-			query.append("WHERE WAREHOUSE_CODE = '").append(criteria.getLocationCode()).append("'");
+			query.append("WHERE WAREHOUSE_CODE = '").append(criteria.getWarehouseCode()).append("'");
 			query.append(" AND ERETAILOR_ID = ").append(criteria.getEtailorId());
 			query.append(" AND DATE_FORMAT(EXPECTED_SHIP_DATE, '%d-%m-%Y %k:%i:%s') BETWEEN '").append(criteria.getExSDAfter()).append("' AND '").append(criteria.getExSDBefore()).append("'");
 			
@@ -172,7 +173,7 @@ public class OrderDoaImpl implements OrderDao {
 		EdiPicklist picklist = new EdiPicklist();
 		picklist.setPicklistId(configDao.getId(SBConstant.MESSAGE_TYPE_PICKLIST));
 		picklist.setPicklistNumber("EDI"+String.format("%010d", Integer.parseInt(picklist.getPicklistId().toString())));
-		picklist.setWarehouseCode(criteria.getLocationCode());
+		picklist.setWarehouseCode(criteria.getWarehouseCode());
 		picklist.setEtailorId(criteria.getEtailorId());
 		picklist.setCreatedDate(new Date());
 		picklist.setCreatedBy(criteria.getUsername());
@@ -235,11 +236,11 @@ public class OrderDoaImpl implements OrderDao {
 
 	@Override
 	@Transactional
-	public Map<String, Object> findPicklistStatus(int etailorId, String locationCode, String scanedValue) {
+	public Map<String, Object> findPicklistStatus(int etailorId, String warehouseCode, String scanedValue) {
 		Map<String, Object> response = new LinkedHashMap<String, Object>();
 		
 		StringBuffer query = new StringBuffer(SBConstant.PICKLIST_STATUS_QUERY);
-		query.append("WHERE WAREHOUSE_CODE = '").append(locationCode).append("'");
+		query.append("WHERE WAREHOUSE_CODE = '").append(warehouseCode).append("'");
 		query.append(" AND ERETAILOR_ID = ").append(etailorId);
 		query.append(" AND (PICKLIST_ID = '").append(scanedValue).append("' OR PICKLIST_NUMBER = '").append(scanedValue).append("')");
 		Query sql = em.createNativeQuery(query.toString());
@@ -283,11 +284,11 @@ public class OrderDoaImpl implements OrderDao {
 	}
 
 	@Override
-	public Long getEdiOrderIdForPacking(int etailorId, String locationCode, String picklistNumber, String ean) {
+	public Long getEdiOrderIdForPacking(int etailorId, String warehouseCode, String picklistNumber, String ean) {
 		Long ediOrderId = 0L;
 		try {
 			StringBuffer query = new StringBuffer("SELECT EDI_ORDER_ID FROM SELLER.EDI_SCAN_EAN ");
-			query.append("WHERE WAREHOUSE_CODE = '").append(locationCode).append("'");
+			query.append("WHERE WAREHOUSE_CODE = '").append(warehouseCode).append("'");
 			query.append(" AND ERETAILOR_ID = ").append(etailorId);
 			query.append(" AND PICKLIST_NUMBER = '").append(picklistNumber).append("'");
 			query.append(" AND EAN = '").append(ean).append("'");

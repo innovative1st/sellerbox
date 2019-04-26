@@ -1,7 +1,7 @@
 package com.seller.box.form;
 public class PicklistSearchForm {
 	private int etailorId;
-	private String locationCode;
+	private String warehouseCode;
 	private String exSDAfter; 	//format dd-mm-yyyy HH:mi:ss
 	private String exSDBefore;	//format dd-mm-yyyy HH:mi:ss
 	private String pickupDate;	//format dd-mm-yyyy HH:mi:ss
@@ -22,11 +22,11 @@ public class PicklistSearchForm {
 	public void setEtailorId(int etailorId) {
 		this.etailorId = etailorId;
 	}
-	public String getLocationCode() {
-		return locationCode;
+	public String getWarehouseCode() {
+		return warehouseCode;
 	}
-	public void setLocationCode(String locationCode) {
-		this.locationCode = locationCode;
+	public void setWarehouseCode(String warehouseCode) {
+		this.warehouseCode = warehouseCode;
 	}
 	public String getExSDAfter() {
 		return exSDAfter;

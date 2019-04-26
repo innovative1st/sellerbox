@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.seller.box.dao.EdiConfigDao;
 
 import io.swagger.annotations.Api;
+import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
+@ApiIgnore
 @Api(tags= {"Configuration"}, description="API to retrieve or manipulate edi-config related information.", hidden = true)
 @RequestMapping("/config")
 public class EdiConfigController {

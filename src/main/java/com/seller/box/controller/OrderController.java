@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -44,13 +45,17 @@ import com.seller.box.utils.SBConstant;
 import com.seller.box.utils.SBUtils;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 
 @Controller
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/order")
-@Api(tags = "Order", position=2, value="Order", description="API to retrieve or manipulate Order related information.")
+@Api(tags = "Order", position= 3, value="Order", consumes= "application/x-www-form-urlencoded", description="API to retrieve or manipulate Order related information.")
 public class OrderController {
 	private static final Logger logger = LogManager.getLogger(OrderController.class);
+	
 	@Autowired
 	OrderDao orderDao;
 	@Autowired
@@ -66,7 +71,7 @@ public class OrderController {
 	@ApiOperation(value = "View new shipments")
 	@RequestMapping(value = "/view/new", 
 					method = RequestMethod.POST,
-					consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE}
+					consumes = {MediaType.ALL_VALUE}
 					)
 	public ResponseEntity<List<ShipmentHdrWithItem>> viewNewShipments(@RequestParam(name="guid") String guid, 
 																	  @RequestParam(name="token") String token, 
@@ -75,17 +80,15 @@ public class OrderController {
 		PicklistSearchForm criteria = new PicklistSearchForm();
 		try {
 			criteria = new ObjectMapper().readValue(body, PicklistSearchForm.class);
-			System.out.println(criteria.getGiftWrapType().isEmpty());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("IOException :: viewNewShipments(...)", e);
 		}
 		
 		List<ShipmentHdrWithItem> newShipments = null;
-		if(SBUtils.isNull(criteria.getLocationCode()) || criteria.getEtailorId() == 0 || SBUtils.isNull(criteria.getExSDAfter()) || SBUtils.isNull(criteria.getExSDBefore())) {
+		if(SBUtils.isNull(criteria.getWarehouseCode()) || criteria.getEtailorId() == 0 || SBUtils.isNull(criteria.getExSDAfter()) || SBUtils.isNull(criteria.getExSDBefore())) {
 			StringBuffer args = new StringBuffer();
-			if(SBUtils.isNull(criteria.getLocationCode())) {
-				args.append(SBConstant.VAR_LOCATION_CODE);
+			if(SBUtils.isNull(criteria.getWarehouseCode())) {
+				args.append(SBConstant.VAR_WAREHOUSE_CODE);
 			}
 			if(criteria.getEtailorId() == 0) {
 				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_ETAILOR_ID);
@@ -115,7 +118,7 @@ public class OrderController {
 	@SuppressWarnings("static-access")
 	@ApiOperation(value = "Create picklist")
 	@PostMapping(value = "/create/picklist", 
-		 	 consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+		 	 consumes = {MediaType.ALL_VALUE})
 	public ResponseEntity<String> createPicklist(@RequestParam(name="guid") String guid, 
 												 @RequestParam(name="token") String token, 
 												 @RequestParam(name = "RequestBody") String body){
@@ -128,10 +131,10 @@ public class OrderController {
 		}
 		
 		Map<String, String> response = null; 
-		if(SBUtils.isNull(criteria.getLocationCode()) || criteria.getEtailorId() == 0 || criteria.getBatchSize() == 0 || SBUtils.isNull(criteria.getOrderIds())) {
+		if(SBUtils.isNull(criteria.getWarehouseCode()) || criteria.getEtailorId() == 0 || criteria.getBatchSize() == 0 || SBUtils.isNull(criteria.getOrderIds())) {
 			StringBuffer args = new StringBuffer();
-			if(SBUtils.isNull(criteria.getLocationCode())) {
-				args.append(SBConstant.VAR_LOCATION_CODE);
+			if(SBUtils.isNull(criteria.getWarehouseCode())) {
+				args.append(SBConstant.VAR_WAREHOUSE_CODE);
 			}
 			if(criteria.getEtailorId() == 0) {
 				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_ETAILOR_ID);
@@ -179,14 +182,14 @@ public class OrderController {
 	@SuppressWarnings("unchecked")
 	@ApiOperation(value = "View picklist")
 	@PostMapping(value = "/readyToPick", 
-			 consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+			 consumes = {MediaType.ALL_VALUE})
 	public ResponseEntity<List<EdiPicklist>> getReadyToPickList(@RequestParam(name="guid") String guid, 
 																@RequestParam(name="token") String token, 
 																@RequestParam(name = "RequestBody") String body){
 		logger.info("getReadyToPickList(...)-------START");
 		Map<String, Object> bodyMap = null;
 		int etailorId			= 0; 
-		String locationCode		= null;
+		String warehouseCode		= null;
 		String picklistFor		= null;
 		String picklistStatus	= null;
 		try {
@@ -194,8 +197,8 @@ public class OrderController {
 			if(bodyMap.containsKey(SBConstant.VAR_ETAILOR_ID)) {
 				etailorId = (int) bodyMap.get(SBConstant.VAR_ETAILOR_ID);
 			}
-			if(bodyMap.containsKey(SBConstant.VAR_LOCATION_CODE)) {
-				locationCode = (String) bodyMap.get(SBConstant.VAR_LOCATION_CODE);
+			if(bodyMap.containsKey(SBConstant.VAR_WAREHOUSE_CODE)) {
+				warehouseCode = (String) bodyMap.get(SBConstant.VAR_WAREHOUSE_CODE);
 			}
 			if(bodyMap.containsKey(SBConstant.VAR_PICKLIST_FOR)) {
 				picklistFor = (String) bodyMap.get(SBConstant.VAR_PICKLIST_FOR);
@@ -209,10 +212,10 @@ public class OrderController {
 		}
 		
 		List<EdiPicklist> picklist = null;
-		if(etailorId == 0 || SBUtils.isNull(locationCode) || SBUtils.isNull(picklistFor) || SBUtils.isNull(picklistStatus)) {
+		if(etailorId == 0 || SBUtils.isNull(warehouseCode) || SBUtils.isNull(picklistFor) || SBUtils.isNull(picklistStatus)) {
 			StringBuffer args = new StringBuffer();
-			if(SBUtils.isNull(locationCode)) {
-				args.append(SBConstant.VAR_LOCATION_CODE);
+			if(SBUtils.isNull(warehouseCode)) {
+				args.append(SBConstant.VAR_WAREHOUSE_CODE);
 			}
 			if(etailorId == 0) {
 				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_ETAILOR_ID);
@@ -226,7 +229,7 @@ public class OrderController {
 			logger.error("SellerClientException :: getReadyToPickList(...)", "Following arguments "+args.toString()+" is mandarory to getReadyToPickList(...)");
 			throw new SellerClientException("Following arguments "+args.toString()+" is mandarory to getReadyToPickList(...)");
 		} else {
-			picklist = (List<EdiPicklist>) orderDao.findReadyToPick(etailorId, locationCode, picklistFor, picklistStatus);
+			picklist = (List<EdiPicklist>) orderDao.findReadyToPick(etailorId, warehouseCode, picklistFor, picklistStatus);
 			if(picklist == null) {
 				NoDataFoundException sse = new NoDataFoundException("There are no picklist based on provided criteria.");
 				sse.setErrorType(SBConstant.ErrorType.DATA_NOT_FOUND.name());
@@ -244,25 +247,30 @@ public class OrderController {
 	
 	@SuppressWarnings("unchecked")
 	@ApiOperation(value = "View ready shipments")
-	@PostMapping(value = "/readyToShip", 
-			consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+	@ApiImplicitParams(
+			{ 
+				@ApiImplicitParam(name = "RequestBody", dataType = "String", required = true, paramType = "query", value = "<table border=\"1\"><tr><td width=\"100\"><strong>Field Name </strong></td><td width=\"100\"><strong>Data Type </strong></td><td align=\"center\" width=\"100\"><strong>Mandatory </strong></td><td width=\"300\"><strong>Description </strong></td></tr><tr style=\"background: #ccc !important;\"><td>warehouseCode</td><td>Varchar(10)</td><td align=\"center\">Mandatory</td><td>eRetail Warehouse Code. API will pick Loc Code from WMS API configuration.</td></tr><tr><td>etailorId</td><td>int(3)</td><td>Mandatory</td><td>eRetail Id</td></tr><tr><td>pickupDate</td><td>Varchar(20)</td><td align=\"center\">Mandatory</td><td>Pickup date type is mandatory to fetch data for specific time. All possible value - ALL/TODAY/YESTERDAY/LAST7DAYS/OTHER</td></tr><tr><td>pickupOtherDate</td><td>Varchar(20)</td><td align=\"center\">Optional</td><td>If pickupDate = \"OTHER\" then pickupOtherDate is mandatory and date format should be 'dd-MM-yyyy'.</td></tr><tr><td>carrierName</td><td>Varchar(20)</td><td align=\"center\">Mandatory</td><td>Need to provide specific carrier name else 'ALL'.</td></tr><tr><td colspan=\"4\"><p><strong>Input JSON Format- <br/>{<br/>&nbsp; &nbsp;\"warehouseCode\": \"XXXX\",<br/>&nbsp; &nbsp;\"etailorId\": 101,<br/>&nbsp; &nbsp;\"pickupDate\": \"OTHER\",<br/>&nbsp; &nbsp;\"pickupOtherDate\": \"31-03-2019\",<br/>&nbsp; &nbsp;\"carrierName\": \"ALL\"<br/>}</strong></p></td></tr></table>"),
+				@ApiImplicitParam(name = "guid", dataType = "String", required = true, paramType = "query", value = "API Owner"),
+				@ApiImplicitParam(name = "token", dataType = "String", required = true, paramType = "query", value = "API Key")
+			})
+	@PostMapping(value = "/readyToShip", consumes = {MediaType.ALL_VALUE})
 	public ResponseEntity<List<ReadyToShip>> getReadyToShipList(@RequestParam(name="guid") String guid, 
 																@RequestParam(name="token") String token, 
 																@RequestParam(name = "RequestBody") String body){
 		logger.info("getReadyToShipList(...)-------START");
 		Map<String, Object> bodyMap = null;
 		int etailorId			= 0; 
-		String locationCode		= null;
+		String warehouseCode	= null;
 		String pickupDate		= null;
 		String pickupOtherDate	= null;
-		String carrierName	= null;
+		String carrierName		= null;
 		try {
 			bodyMap = new ObjectMapper().readValue(body, HashMap.class);
 			if(bodyMap.containsKey(SBConstant.VAR_ETAILOR_ID)) {
 				etailorId = (int) bodyMap.get(SBConstant.VAR_ETAILOR_ID);
 			}
-			if(bodyMap.containsKey(SBConstant.VAR_LOCATION_CODE)) {
-				locationCode = (String) bodyMap.get(SBConstant.VAR_LOCATION_CODE);
+			if(bodyMap.containsKey(SBConstant.VAR_WAREHOUSE_CODE)) {
+				warehouseCode = (String) bodyMap.get(SBConstant.VAR_WAREHOUSE_CODE);
 			}
 			if(bodyMap.containsKey(SBConstant.VAR_PICKUP_DATE)) {
 				pickupDate = (String) bodyMap.get(SBConstant.VAR_PICKUP_DATE);
@@ -278,10 +286,10 @@ public class OrderController {
 			logger.error("IOException :: getReadyToShipList(...)", e);
 		}
 		List<ReadyToShip> readyShipment = null;
-		if(etailorId == 0 || SBUtils.isNull(locationCode) || SBUtils.isNull(pickupDate) || SBUtils.isNull(carrierName)) {
+		if(etailorId == 0 || SBUtils.isNull(warehouseCode) || SBUtils.isNull(pickupDate) || SBUtils.isNull(carrierName)) {
 			StringBuffer args = new StringBuffer();
-			if(SBUtils.isNull(locationCode)) {
-				args.append(SBConstant.VAR_LOCATION_CODE);
+			if(SBUtils.isNull(warehouseCode)) {
+				args.append(SBConstant.VAR_WAREHOUSE_CODE);
 			}
 			if(etailorId == 0) {
 				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_ETAILOR_ID);
@@ -295,7 +303,7 @@ public class OrderController {
 			logger.error("SellerClientException :: getReadyToShipList(...)", "Following arguments "+args.toString()+" is mandarory to getReadyToShipList(...)");
 			throw new SellerClientException("Following arguments "+args.toString()+" is mandarory to getReadyToShipList(...)");
 		} else {
-			readyShipment = (List<ReadyToShip>) orderDao.findReadyToShip(etailorId, locationCode, pickupDate, pickupOtherDate, carrierName);
+			readyShipment = (List<ReadyToShip>) orderDao.findReadyToShip(etailorId, warehouseCode, pickupDate, pickupOtherDate, carrierName);
 			if(readyShipment == null) {
 				NoDataFoundException sse = new NoDataFoundException("There are no picklist based on provided criteria.");
 				sse.setErrorType(SBConstant.ErrorType.DATA_NOT_FOUND.name());
@@ -314,22 +322,22 @@ public class OrderController {
 	@SuppressWarnings("unchecked")
 	@ApiOperation(value = "View picklist status")
 	@PostMapping(value = "/picklistStatus", 
-			consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+			consumes = {MediaType.ALL_VALUE})
 	public ResponseEntity<Map<String, Object>> getPicklistStatus(@RequestParam(name="guid") String guid, 
 																@RequestParam(name="token") String token, 
 																@RequestParam(name = "RequestBody") String body){
 		
 		Map<String, Object> bodyMap = null;
 		int etailorId		= 0; 
-		String locationCode	= null;
+		String warehouseCode	= null;
 		String scanedValue	= null;
 		try {
 			bodyMap = new ObjectMapper().readValue(body, HashMap.class);
 			if(bodyMap.containsKey(SBConstant.VAR_ETAILOR_ID)) {
 				etailorId = (int) bodyMap.get(SBConstant.VAR_ETAILOR_ID);
 			}
-			if(bodyMap.containsKey(SBConstant.VAR_LOCATION_CODE)) {
-				locationCode = (String) bodyMap.get(SBConstant.VAR_LOCATION_CODE);
+			if(bodyMap.containsKey(SBConstant.VAR_WAREHOUSE_CODE)) {
+				warehouseCode = (String) bodyMap.get(SBConstant.VAR_WAREHOUSE_CODE);
 			}
 			if(bodyMap.containsKey(SBConstant.VAR_SCANED_VALUE)) {
 				scanedValue = (String) bodyMap.get(SBConstant.VAR_SCANED_VALUE);
@@ -338,10 +346,10 @@ public class OrderController {
 			bodyMap = new HashMap<String, Object>();
 		}
 		Map<String, Object> response = null;
-		if(etailorId == 0 || SBUtils.isNull(locationCode) || SBUtils.isNull(scanedValue)) {
+		if(etailorId == 0 || SBUtils.isNull(warehouseCode) || SBUtils.isNull(scanedValue)) {
 			StringBuffer args = new StringBuffer();
-			if(SBUtils.isNull(locationCode)) {
-				args.append(SBConstant.VAR_LOCATION_CODE);
+			if(SBUtils.isNull(warehouseCode)) {
+				args.append(SBConstant.VAR_WAREHOUSE_CODE);
 			}
 			if(etailorId == 0) {
 				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_ETAILOR_ID);
@@ -352,7 +360,7 @@ public class OrderController {
 			
 			throw new SellerClientException("Following arguments "+args.toString()+" is mandarory to getPicklistStatus(...)");
 		} else {
-			response = orderDao.findPicklistStatus(etailorId, locationCode, scanedValue);
+			response = orderDao.findPicklistStatus(etailorId, warehouseCode, scanedValue);
 			if(response == null) {
 				NoDataFoundException sse = new NoDataFoundException("There are no picklist based on provided criteria.");
 				sse.setErrorType(SBConstant.ErrorType.DATA_NOT_FOUND.name());
@@ -366,18 +374,17 @@ public class OrderController {
 		}
 	}
 	
-	//@SuppressWarnings({ "unchecked", "unlikely-arg-type" })
 	@SuppressWarnings("unchecked")
 	@ApiOperation(value = "Get shipment details")
 	@PostMapping(value = "/getShipment", 
-			consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+			consumes = {MediaType.ALL_VALUE})
 	public ResponseEntity<Shipment> getShipment(@RequestParam(name="guid") String guid, 
 												@RequestParam(name="token") String token, 
 												@RequestParam(name = "RequestBody") String body){
 		logger.info("getShipment(...)-------START");
 		Map<String, Object> bodyMap = null;
 		int etailorId		= 0; 
-		String locationCode	= null;
+		String warehouseCode= null;
 		String picklistNumber= null;
 		String ean			= null;
 		Long ediOrderId 	= 0L;
@@ -386,8 +393,8 @@ public class OrderController {
 			if(bodyMap.containsKey(SBConstant.VAR_ETAILOR_ID)) {
 				etailorId = (int) bodyMap.get(SBConstant.VAR_ETAILOR_ID);
 			}
-			if(bodyMap.containsKey(SBConstant.VAR_LOCATION_CODE)) {
-				locationCode = (String) bodyMap.get(SBConstant.VAR_LOCATION_CODE);
+			if(bodyMap.containsKey(SBConstant.VAR_WAREHOUSE_CODE)) {
+				warehouseCode = (String) bodyMap.get(SBConstant.VAR_WAREHOUSE_CODE);
 			}
 			if(bodyMap.containsKey(SBConstant.VAR_PICKLIST_NUMBER)) {
 				picklistNumber = (String) bodyMap.get(SBConstant.VAR_PICKLIST_NUMBER);
@@ -403,10 +410,10 @@ public class OrderController {
 			logger.error("IOException :: getShipment(...)", e);
 		}
 		Shipment shipment = null;
-		if(SBUtils.isNull(etailorId) || SBUtils.isNull(locationCode) || SBUtils.isNull(picklistNumber) || SBUtils.isNull(ean)) {
+		if(SBUtils.isNull(etailorId) || SBUtils.isNull(warehouseCode) || SBUtils.isNull(picklistNumber) || SBUtils.isNull(ean)) {
 			StringBuffer args = new StringBuffer();
-			if(SBUtils.isNull(locationCode)) {
-				args.append(SBConstant.VAR_LOCATION_CODE);
+			if(SBUtils.isNull(warehouseCode)) {
+				args.append(SBConstant.VAR_WAREHOUSE_CODE);
 			}
 			if(SBUtils.isNull(picklistNumber)) {
 				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_PICKLIST_NUMBER);
@@ -421,7 +428,7 @@ public class OrderController {
 			throw new SellerClientException("Following arguments "+args.toString()+" is mandarory to getShipment(...)");
 		} else {
 			if(ediOrderId.equals(0L)) {
-				ediOrderId = orderDao.getEdiOrderIdForPacking(etailorId, locationCode, picklistNumber, ean);
+				ediOrderId = orderDao.getEdiOrderIdForPacking(etailorId, warehouseCode, picklistNumber, ean);
 			}
 			if(!ediOrderId.equals(0L)) {
 				shipment = this.getSHipmentForPacking(ediOrderId);
@@ -523,7 +530,7 @@ public class OrderController {
 	
 	@SuppressWarnings({ "unchecked", "unused" })
 	@ApiOperation(value = "API For Synchronous Creating Order")
-	@PostMapping(value = "/create", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+	@PostMapping(value = "/create", consumes = {MediaType.ALL_VALUE})
 	public ResponseEntity<ServiceResponse> createOrderSync(@RequestParam(name="guid") String guid, 
 												@RequestParam(name="token") String token, 
 												@RequestParam(name = "RequestBody") String body){
@@ -532,7 +539,7 @@ public class OrderController {
 		int etailorId				= 0;
 		String requestId			= null;
 		String warehouseCode		= null;
-		//Message message 			= null;
+		String orderType			= null;
 		OF of 						= null;
 		ServiceResponse response = new ServiceResponse();
 		try {
@@ -549,6 +556,11 @@ public class OrderController {
 				requestId = (String) bodyMap.get(SBConstant.VAR_REQUEST_ID);
 			} else {
 				requestId = UUID.randomUUID().toString();
+			}
+			if(bodyMap.containsKey(SBConstant.VAR_ORDER_TYPE)) {
+				orderType = (String) bodyMap.get(SBConstant.VAR_ORDER_TYPE);
+			} else {
+				orderType = "WMS";
 			}
 			response.setRequestId(requestId);
 			if(bodyMap.containsKey("OF")) {
@@ -602,7 +614,7 @@ public class OrderController {
 						response.setUniqueKey(uniqueId.toString());
 					} else {
 						Long ediOrderId = ediConfigDao.getId(SBConstant.MESSAGE_TYPE_OF);
-						response = orderService.createOrder(requestId, of, etailorId, ediOrderId, guid);
+						response = orderService.createOrder(requestId, of, orderType, etailorId, ediOrderId, guid);
 					}
 				}
 			}
@@ -630,7 +642,7 @@ public class OrderController {
 	
 	@SuppressWarnings({ "unchecked", "null" })
 	@ApiOperation(value = "API For Asynchronous Creating Order")//, hidden = true)
-	@PostMapping(value = "/createAsync", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+	@PostMapping(value = "/createAsync", consumes = {MediaType.ALL_VALUE})
 	public ResponseEntity<ServiceResponse> createOrderAsync(@RequestParam(name="guid") String guid, 
 								 @RequestParam(name="token") String token, 
 								 @RequestParam(name = "RequestBody") String body){
@@ -639,7 +651,7 @@ public class OrderController {
 		int etailorId				= 0;
 		String requestId			= null;
 		String warehouseCode		= null;
-		//Message message 			= null;
+		String orderType			= null;
 		OF of 						= null;
 		ServiceResponse response = new ServiceResponse();
 		try {
@@ -654,19 +666,15 @@ public class OrderController {
 			} else {
 				requestId = UUID.randomUUID().toString();
 			}
+			if(bodyMap.containsKey(SBConstant.VAR_ORDER_TYPE)) {
+				orderType = (String) bodyMap.get(SBConstant.VAR_ORDER_TYPE);
+			} else {
+				orderType = "WMS";
+			}
 			response.setRequestId(requestId);
 			if(bodyMap.containsKey("OF")) {
 				Gson g = new Gson();
 				of = g.fromJson((String)bodyMap.get("OF"), OF.class);
-				/***
-				message = g.fromJson((String)bodyMap.get("Message"), Message.class);
-				if(message != null) {
-					if (message.getMessageType().equalsIgnoreCase(SBConstant.MESSAGE_TYPE_OF)) {
-						if (message.getOf() != null) {
-							of = message.getOf();
-						}
-					}
-				}***/
 				if(of != null) {
 					warehouseCode = of.getWarehouseLocationId();
 				}
@@ -705,11 +713,11 @@ public class OrderController {
 						response.setUniqueKey(uniqueId.toString());
 					} else {
 						Long ediOrderId = ediConfigDao.getId(SBConstant.MESSAGE_TYPE_OF);
-						orderService.createOrderAsync(requestId, of, etailorId, ediOrderId, guid);
+						orderService.createOrderAsync(requestId, of, orderType, etailorId, ediOrderId, guid);
 						response.setResponseCode(SBConstant.TXN_RESPONSE_CODE_SUCCESS);
 						response.setStatus(SBConstant.TXN_STATUS_SUCCESS);
 						response.setUniqueKey(ediOrderId.toString());
-						response.setResponseMessage("Shipment Id =" + of.getPurchaseOrder() +" is async submitted to process.");
+						response.setResponseMessage("Shipment Id " + of.getPurchaseOrder() +" is async submitted to process.");
 					}
 				}
 			}
@@ -729,7 +737,7 @@ public class OrderController {
 	
 	@SuppressWarnings("unchecked")
 	@ApiOperation(value = "API For Asynchronous Creating Order")//, hidden = true)
-	@PostMapping(value = "/update/measurement", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+	@PostMapping(value = "/update/measurement", consumes = {MediaType.ALL_VALUE})
 	public ResponseEntity<ServiceResponse> measurmentUpdateAsync(@RequestParam(name="guid") String guid, 
 								 @RequestParam(name="token") String token, 
 								 @RequestParam(name = "RequestBody") String body){
@@ -795,7 +803,7 @@ public class OrderController {
 	@SuppressWarnings("unchecked")
 	@ApiOperation(value = "Make invoice entry")
 	@PostMapping(value = "/create/invoice", 
-			consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+			consumes = {MediaType.ALL_VALUE})
 	public ResponseEntity<Map<String, Object>> makeInvoiceEntry(@RequestParam(name="guid") String guid, 
 												@RequestParam(name="token") String token, 
 												@RequestParam(name = "RequestBody") String body){
@@ -846,6 +854,71 @@ public class OrderController {
 			logger.info("makeInvoiceEntry(...)-------END");
 			return new ResponseEntity<Map<String, Object>>(bodyMap, HttpStatus.OK);
 		}
-		
+	}
+	
+	@SuppressWarnings("unchecked")
+	@ApiOperation(value = "Make OFR {29, 8, 13} entry")
+	@PostMapping(value = "/create/ofr", 
+			consumes = {MediaType.ALL_VALUE})
+	public ResponseEntity<ServiceResponse> createOFR(@RequestParam(name="guid") String guid, 
+												@RequestParam(name="token") String token, 
+												@RequestParam(name = "RequestBody") String body){
+		logger.info("createOFR(...)-------START");
+		ServiceResponse response = new ServiceResponse();
+		Map<String, Object> bodyMap = null;
+		String ediOrderId			= null;
+		String requestId			= null;
+		int orderStatus				= 0;
+		try {
+			bodyMap = new ObjectMapper().readValue(body, HashMap.class);
+			if(bodyMap.containsKey(SBConstant.VAR_EDI_ORDER_ID)) {
+				ediOrderId = (String) bodyMap.get(SBConstant.VAR_EDI_ORDER_ID);
+				try {
+					Long.parseLong(ediOrderId);
+				} catch (NumberFormatException e) {
+					ediOrderId = null;
+				}
+			}
+			if(bodyMap.containsKey(SBConstant.VAR_REQUEST_ID)) {
+				requestId = (String) bodyMap.get(SBConstant.VAR_REQUEST_ID);
+			} else {
+				requestId = UUID.randomUUID().toString();
+			}
+			if(bodyMap.containsKey(SBConstant.VAR_OFR_ORDER_STATUS)) {
+				orderStatus = (int) bodyMap.get(SBConstant.VAR_OFR_ORDER_STATUS);
+			} 
+			response.setRequestId(requestId);
+			
+			if(SBUtils.isNull(ediOrderId) || SBUtils.isNull(orderStatus)) {
+				response.setResponseCode(SBConstant.TXN_RESPONSE_CODE_FAILURE);
+				response.setStatus(SBConstant.TXN_STATUS_FAILURE);
+				response.setResponseMessage("System ediOrderId & orderStatus both is mandarory to create ofr against order.");
+				response.setUniqueKey(null);
+				response.setErrorDesc("System ediOrderId & orderStatus both is mandarory to create ofr against order.");
+			} else {
+				boolean flag = orderService.isOrderExistByEdiOrderId(requestId, Long.parseLong(ediOrderId));
+				if(flag) {
+					ServiceResponse sr = orderService.createOfr(requestId, Long.parseLong(ediOrderId), orderStatus);
+					response.setResponseCode(sr.getResponseCode());
+					response.setStatus(sr.getStatus());
+					response.setResponseMessage(sr.getResponseMessage());
+					response.setUniqueKey(sr.getUniqueKey());
+					response.setErrorDesc(sr.getErrorDesc());
+				} else {
+					response.setResponseCode(SBConstant.TXN_RESPONSE_CODE_NO_DATA);
+					response.setStatus(SBConstant.TXN_STATUS_NO_DATA);
+					response.setUniqueKey(ediOrderId.toString());
+					response.setResponseMessage("Unable to find shipment based on provided ediOrderId = " + ediOrderId);
+				}
+			}
+		} catch (IOException e) {
+			logger.error("IOException :: createOFR(...)", e);
+			response.setResponseCode(SBConstant.TXN_RESPONSE_CODE_EXCEPTION);
+			response.setStatus(SBConstant.TXN_STATUS_EXCEPTION);
+			response.setResponseMessage("General exception occured, Unable to create ofr for ediOrderId = "+ ediOrderId);
+			response.setUniqueKey(null);
+			response.setErrorDesc(e.getMessage());
+		}
+		return new ResponseEntity<ServiceResponse>(response, HttpStatus.OK);
 	}
 }

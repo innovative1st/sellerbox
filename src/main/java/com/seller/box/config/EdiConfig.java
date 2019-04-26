@@ -7,12 +7,16 @@ import com.seller.box.utils.SBConstant;
 import com.seller.box.utils.SBUtils;
 
 public class EdiConfig {
-	public EdiConfig(EdiConfigDao configDao, String locationCode, int etailorId, String messageType) {
-		this.locationCode 				= locationCode;
+	public EdiConfig(String requestId, EdiConfigDao configDao, String warehouseCode, int etailorId, String messageType) {
+		this.warehouseCode 				= warehouseCode;
 		this.etailorId    				= etailorId;
 		this.messageType  				= messageType;
 		this.txnId						= configDao.getId(messageType);
-		this.requestId	  				= UUID.randomUUID().toString();
+		if (requestId != null) {
+			this.requestId				= requestId;
+		} else {
+			this.requestId = UUID.randomUUID().toString();
+		}
 		this.transCreationDate			= SBUtils.getTxnSysDateTime();
 		this.transIsTest				= SBUtils.getPropertyValue("IS_TEST");
 		this.messageCount 				= Integer.parseInt(SBUtils.getPropertyValue("MESSAGE_COUNT_IAN"));
@@ -21,8 +25,8 @@ public class EdiConfig {
 		this.messageStructureVersion	= SBUtils.getPropertyValue("MESSAGE_STRUCTURE_VERSION");
 		this.messageCreationDate		= this.transCreationDate;
 		this.transControlNumber			= configDao.getTransControlNumber();
-		this.transReceivingPartyId		= configDao.getReceivingPartyId(locationCode);
-		this.transSendingPartyId 		= configDao.getSendingPartyId(locationCode);
+		this.transReceivingPartyId		= configDao.getReceivingPartyId(warehouseCode);
+		this.transSendingPartyId 		= configDao.getSendingPartyId(warehouseCode);
 		this.messageReceivingPartyId 	= this.transReceivingPartyId;
 		this.messageSendingPartyId		= this.transSendingPartyId;
 		this.messageControlNumber		= configDao.getMessageControlNumber();
@@ -31,16 +35,35 @@ public class EdiConfig {
 		this.archiveFilepath 			= SBUtils.getPropertyValue("ARCHIVE_FILEPATH_"+messageType.toUpperCase());
 		if(messageType.equalsIgnoreCase(SBConstant.MESSAGE_TYPE_IAN)) {
 			this.adjustmentControlId	= configDao.getAdjustmentControlId();
-			this.marketplaceId			= configDao.getMarketplaceId(locationCode);
+			this.marketplaceId			= configDao.getMarketplaceId(warehouseCode);
 		} else if(messageType.equalsIgnoreCase(SBConstant.MESSAGE_TYPE_ILN)) {
 			this.inventoryControlNumber	= configDao.getInventoryControlNumber();
-		} else if(messageType.equalsIgnoreCase(SBConstant.MESSAGE_TYPE_OFR)) {
-			
+		} else if(messageType.equalsIgnoreCase(SBConstant.MESSAGE_TYPE_OFR) || messageType.equalsIgnoreCase(SBConstant.MESSAGE_TYPE_ASN)) {
+			try {
+				this.responseCondition 		= SBUtils.getPropertyValue("ofr.response.condition");
+			} catch (Exception e) {
+				this.responseCondition 		= SBConstant.OFR_RESPONSE_CONDITION;
+			}
+			try {
+				this.resultCode				= SBUtils.getPropertyValue("ofr.result.code");
+			} catch (Exception e) {
+				this.resultCode				= SBConstant.OFR_RESULT_CODE;
+			}
+			if (messageType.equalsIgnoreCase(SBConstant.MESSAGE_TYPE_OFR)) {
+				try {
+					this.resultDescription = SBUtils.getPropertyValue("ofr.result.desc");
+				} catch (Exception e) {
+					this.resultDescription = SBConstant.OFR_RESULT_DESC;
+				} 
+			}
+			if (messageType.equalsIgnoreCase(SBConstant.MESSAGE_TYPE_ASN)) {
+				this.readyToShipDate   = this.transCreationDate;
+			}
 		}
 	}
 	private Long txnId;
 	private String requestId;
-	private String locationCode;
+	private String warehouseCode;
 	private String messageType;
 	private int etailorId;
 	private String archiveFilepath;
@@ -62,6 +85,10 @@ public class EdiConfig {
 	private String adjustmentControlId;
 	private String marketplaceId;
 	private String inventoryControlNumber;
+	private String responseCondition;
+	private String resultCode;
+	private String resultDescription;
+	private String readyToShipDate;
 	public Long getTxnId() {
 		return txnId;
 	}
@@ -74,11 +101,11 @@ public class EdiConfig {
 	public void setRequestId(String requestId) {
 		this.requestId = requestId;
 	}
-	public String getLocationCode() {
-		return locationCode;
+	public String getWarehouseCode() {
+		return warehouseCode;
 	}
-	public void setLocationCode(String locationCode) {
-		this.locationCode = locationCode;
+	public void setWarehouseCode(String warehouseCode) {
+		this.warehouseCode = warehouseCode;
 	}
 	public String getMessageType() {
 		return messageType;
@@ -205,6 +232,30 @@ public class EdiConfig {
 	}
 	public void setInventoryControlNumber(String inventoryControlNumber) {
 		this.inventoryControlNumber = inventoryControlNumber;
+	}
+	public String getResponseCondition() {
+		return responseCondition;
+	}
+	public void setResponseCondition(String responseCondition) {
+		this.responseCondition = responseCondition;
+	}
+	public String getResultCode() {
+		return resultCode;
+	}
+	public void setResultCode(String resultCode) {
+		this.resultCode = resultCode;
+	}
+	public String getResultDescription() {
+		return resultDescription;
+	}
+	public void setResultDescription(String resultDescription) {
+		this.resultDescription = resultDescription;
+	}
+	public String getReadyToShipDate() {
+		return readyToShipDate;
+	}
+	public void setReadyToShipDate(String readyToShipDate) {
+		this.readyToShipDate = readyToShipDate;
 	}
 	
 	

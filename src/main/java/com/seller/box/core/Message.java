@@ -2,10 +2,6 @@ package com.seller.box.core;
 
 import java.io.Serializable;
 
-//import com.seller.box.message.transform.core.CRN;
-//import com.seller.box.message.transform.core.OC;
-//import com.seller.box.message.transform.core.OF;
-
 public class Message implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public String isTest;

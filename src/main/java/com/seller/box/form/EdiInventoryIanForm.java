@@ -1,7 +1,8 @@
 package com.seller.box.form;
 
 public class EdiInventoryIanForm {
-	private String locationCode;
+	private String requestId;
+	private String warehouseCode;
 	private int etailorId;
 	private String skuCode;
 	private String fnsku;
@@ -11,17 +12,23 @@ public class EdiInventoryIanForm {
 	private String createdBy;
 	private String inventorySourceLocation;
 	private String inventoryDestinationLocation;
-	public String getLocationCode() {
-		return locationCode;
+	public String getRequestId() {
+		return requestId;
 	}
-	public void setLocationCode(String locationCode) {
-		this.locationCode = locationCode;
+	public void setRequestId(String requestId) {
+		this.requestId = requestId;
 	}
 	public int getEtailorId() {
 		return etailorId;
 	}
 	public void setEtailorId(int etailorId) {
 		this.etailorId = etailorId;
+	}
+	public String getWarehouseCode() {
+		return warehouseCode;
+	}
+	public void setWarehouseCode(String warehouseCode) {
+		this.warehouseCode = warehouseCode;
 	}
 	public String getSkuCode() {
 		return skuCode;
@@ -70,5 +77,13 @@ public class EdiInventoryIanForm {
 	}
 	public void setInventoryDestinationLocation(String inventoryDestinationLocation) {
 		this.inventoryDestinationLocation = inventoryDestinationLocation;
+	}
+	@Override
+	public String toString() {
+		return "EdiInventoryIanForm [requestId=" + requestId + ", warehouseCode=" + warehouseCode + ", etailorId="
+				+ etailorId + ", skuCode=" + skuCode + ", fnsku=" + fnsku + ", quantity=" + quantity
+				+ ", adjustmentType=" + adjustmentType + ", purchaseOrderNumber=" + purchaseOrderNumber + ", createdBy="
+				+ createdBy + ", inventorySourceLocation=" + inventorySourceLocation + ", inventoryDestinationLocation="
+				+ inventoryDestinationLocation + "]";
 	}
 }

@@ -2,10 +2,13 @@ package com.seller.box.utils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.TimeZone;
 
 public class SBUtils {
     public static String getPropertyValue(String param) {
@@ -67,5 +70,23 @@ public class SBUtils {
 		}
     	return true;
     }
-    
+    public static Date convertGMTtoISTDate(String dateAsString){
+        Date date = null;
+        try {
+            SimpleDateFormat datef = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            //datef.setTimeZone(TimeZone.getTimeZone("GMT"));
+            date = datef.parse(dateAsString);
+            String timeZone = "IST";
+            if (date != null){
+                SimpleDateFormat sdf = new SimpleDateFormat();
+                timeZone = Calendar.getInstance().getTimeZone().getID();
+                sdf.setTimeZone(TimeZone.getTimeZone(timeZone));
+                date = sdf.parse(sdf.format(date));
+            }
+        } catch (ParseException e) {
+        	date = new Date();
+            //logger.error("ParseException :: convertGMTtoISTDate(String dateAsString)", e);
+        }
+        return date;
+    }
 }
