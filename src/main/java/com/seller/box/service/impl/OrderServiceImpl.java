@@ -656,7 +656,7 @@ public class OrderServiceImpl implements OrderService {
 			} 
 		}
 		logger.info(requestId + SBConstant.LOG_SEPRATOR + "createAsn(String requestId, Long ediOrderId)---END");
-		return null;
+		return response;
 	}
 
 	@Override

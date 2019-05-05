@@ -54,6 +54,7 @@ public class Shipment implements Serializable{
     private int isGiftWrap;
     private int isFastTrack;
     private int isPaperDunnage;
+    private String manifestExceptionMessage;
     private List<ShipmentItem> shipmentItem;									//Shipment associated items list 
 	public Long getEdiOrderId() {
 		return ediOrderId;
@@ -330,6 +331,12 @@ public class Shipment implements Serializable{
 	}
 	public void setIsPaperDunnage(int isPaperDunnage) {
 		this.isPaperDunnage = isPaperDunnage;
+	}
+	public String getManifestExceptionMessage() {
+		return manifestExceptionMessage;
+	}
+	public void setManifestExceptionMessage(String manifestExceptionMessage) {
+		this.manifestExceptionMessage = manifestExceptionMessage;
 	}
 	public List<ShipmentItem> getShipmentItem() {
 		return shipmentItem;

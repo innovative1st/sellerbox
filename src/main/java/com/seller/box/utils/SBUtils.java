@@ -52,6 +52,10 @@ public class SBUtils {
     				if((Integer)value == 0) {
     					return true;
     				}
+    			} else if (value instanceof Long) {
+    				if((Long)value == 0L) {
+    					return true;
+    				}
     			}
     		}
 		} catch (Exception e) {
@@ -89,4 +93,9 @@ public class SBUtils {
         }
         return date;
     }
+
+	public static String getPhoneUrl() {
+        String phoneAddress = "http://192.168.2.171:8086"+"/sellerflex/"+"PrintServer";
+        return phoneAddress;
+	}
 }

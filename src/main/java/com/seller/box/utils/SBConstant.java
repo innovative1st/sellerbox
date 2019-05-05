@@ -1,6 +1,7 @@
 package com.seller.box.utils;
 
 public class SBConstant {
+	public static final String LOG_SEPRATOR 		    = "---> ";
 	public static final int DEFAULT_PAGE_SIZE = 100;
 	public static final String VI_SEARCH_QUERY = "SELECT IL.IL_ID, IL.SKU_CODE, PC.EAN, PCD.ITEM_ID, PCD.FNSKU, PC.PRODUCT_NAME, PC.BRAND_NAME, IL.LOCATION_CODE, IL.ETAILOR_ID, IL.QUANTITY, IL.INVENTORY_STATUS, PCD.SALE_PRICE, PCD.SHIPPING_CHARGE, IL.INVENTORY_SOURCE_LOCATION, IL.ITEM_LOCATION, PC.THUMBNAIL_URL, IFNULL(PC.IS_SALEBLE, 0) AS IS_SALEBLE, IFNULL(PCD.IS_ACTIVE, 0) AS IS_ACTIVE, IFNULL(PC.AUTO_SYNC_INVENTORY, 0) AS AUTO_SYNC_INVENTORY FROM INVENTORY.EDI_INVENTORY_LEVEL IL LEFT JOIN CATALOGUE.PRODUCT_CATALOGUE PC ON IL.SKU_CODE = PC.SKU_CODE LEFT JOIN CATALOGUE.PRODUCT_CHANNEL_DETAILS PCD ON IL.SKU_CODE = PCD.SKU_CODE AND IL.ETAILOR_ID = PCD.ERETAILOR_ID ";
 	public static final String VI_COUNT_QUERY  = "SELECT COUNT(1) FROM INVENTORY.EDI_INVENTORY_LEVEL IL LEFT JOIN CATALOGUE.PRODUCT_CATALOGUE PC ON IL.SKU_CODE = PC.SKU_CODE LEFT JOIN CATALOGUE.PRODUCT_CHANNEL_DETAILS PCD ON IL.SKU_CODE = PCD.SKU_CODE AND IL.ETAILOR_ID = PCD.ERETAILOR_ID ";
@@ -96,8 +97,9 @@ public class SBConstant {
 	public static final String MESSAGE_TYPE_INV  	= "INV";
 	public static final String MESSAGE_TYPE_PICKLIST= "PICKLIST";
 	
-	public static final String IAN_ADUSTMENT_TYPE_FOUND = "FOUND";
-	public static final String IAN_ADUSTMENT_TYPE_LOST  = "LOST";
+	public static final String IAN_ADUSTMENT_TYPE_FOUND 		= "FOUND";
+	public static final String IAN_ADUSTMENT_TYPE_LOST  		= "LOST";
+	public static final String IAN_ADUSTMENT_TYPE_STATUS_CHANGE	= "STATUS-CHANGE";
 	
 	
 	public static final String IAN_LOCATION_TYPE_PRIME 		  		= "PRIME";
@@ -145,16 +147,44 @@ public class SBConstant {
 	public static final String VAR_QUANTITY			= "quantity";
 	public static final String VAR_OFR_ORDER_STATUS	= "orderStatus";
 	public static final String VAR_ADJUSTMENT_TYPE	= "adjustmentType";
+	public static final String VAR_OC_ID			= "ocId";
 	public static final String VAR_PURCHASE_ORDER_NUMBER			= "purchaseOrderNumber";
 	public static final String VAR_INVENTORY_SOURCE_LOCATION		= "inventorySourceLocation";
 	public static final String VAR_INVENTORY_DESTINATION_LOCATION	= "inventoryDestinationLocation";
+
+	public static final String VAR_PS_ID			= "packStationId";
+	public static final String VAR_PS_NAME			= "packStationName";
+	public static final String VAR_PS_HOST_NAME		= "packStationHostname";
+	public static final String VAR_PS_MACHINE_NAME	= "packStationMachinename";
+	public static final String VAR_PS_IP_ADDRESS	= "packStationIpaddress";
+	public static final int VAR_PS_LISTENER_PORT	= 1331;
+	public static final String VAR_PS_PRINTER_TYPE	= "printerType";
+	public static final String VAR_PS_PRINTER_NAME	= "printerName";
+	
+	
+	
 	
 	public static final String OFR_RESPONSE_CONDITION= "SUCCESS";
 	public static final String OFR_RESULT_CODE		 = "00";
 	public static final String OFR_RESULT_DESC 		 = "Shipping 100 percent of ordered product";
 	
 	
-	public static final String LOG_SEPRATOR 		    = "---> ";
 	
-	
+	/**********PrintUtils Constant*******************************************/
+    public static final String FILE_TYPE_INVOICE   = "INVOICE";
+    public static final String FILE_TYPE_SHIPLABEL = "SHIPLABEL";
+    public static final String FILE_TYPE_GIFTCARD  = "GIFTCARD";
+    
+    public static final String PRINTER_TYPE_INVOICE   = "INVOICE";
+    public static final String PRINTER_TYPE_SHIPLABEL = "SHIPLABEL";
+    public static final String PRINTER_TYPE_GIFTCARD  = "GIFTCARD"; 
+    
+    public static final String PRINTER_STATUS_ACTIVE   = "A";  
+    public static final String PRINTER_STATUS_INACTIVE = "I";  
+    
+    public static final String IP_REGISTER_STATUS_SUCCESS = "SUCCESS";  
+    public static final String IP_REGISTER_STATUS_FAILED  = "FAILED"; 
+    public static final String PING_STATUS_UNKNOWN_HOST   = "401"; 
+    public static final String PING_STATUS_UNREACHABLE    = "404";  
+    /**********PrintUtils Constant*******************************************/
 }

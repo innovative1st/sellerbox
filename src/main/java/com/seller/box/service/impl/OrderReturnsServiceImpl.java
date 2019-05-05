@@ -151,7 +151,7 @@ public class OrderReturnsServiceImpl implements OrderReturnsService {
 			} else if(orders > 1) {
 				uniqueId = 0L;
 			} else {
-				uniqueId = -1L; //No crn found
+				uniqueId = -1L; //No CRN found
 			}
 		} catch (DataAccessException e) {
 			logger.error(requestId + SBConstant.LOG_SEPRATOR + "isOrderReturnsExist(String requestId, int etailorId, CRN crn)", e);
