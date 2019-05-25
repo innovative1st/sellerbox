@@ -1,2 +1,13 @@
 language: java
 jdk: openjdk8
+
+before_install:
+ - chmod +x mvnw
+
+script:
+- ./mvnw clean install -B
+mvn sonar:sonar \
+  -Dsonar.projectKey=innovative1st_sellerbox \
+  -Dsonar.organization=innovative1st-github \
+  -Dsonar.host.url=https://sonarcloud.io \
+  -Dsonar.login=6ba47ebe8080122eb02675985c0655361766083e
