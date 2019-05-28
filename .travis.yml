@@ -1,5 +1,19 @@
 language: java
 jdk: openjdk8
 sudo: required
+env:
+ global:
+ - secure:"04FO1Ljdsfiu2O+QzhrXVfAsr3aolkIxlxSHibfP3kqo4NWhpGpm6shM82hssvTTHlmnMDv9OXo4cC1umTPUdagz2Zs83neA4PkQc45zIB9smU9LAol/3XDupvdDo1C5kO51wmU+quJhIl3yP5ie45N40iUCHud/NpjShFh2QH8Jtlgmoj5fjBx9q3SjERiIG/1wm3R0UaTpMNvyTtUKDRAEVjZh09AckFb7kJXaOs/weSCnHB5fxbqtC6XsSc7lf/rwd/B/PyaByofFIa5dEAXHImyNev10ARFvR5YAKtCVHFGsqmf3OcKrFE80G+eqZI1XvTPaI7Rj7ceb0hYbGFngXsqe1ohNBhnYhe0e9xizkWzJsaNFarFKWeZ/weVeJEF7GeTu6iiBkIhnaLNXV231yZ9d2T7OGRRlONVFEOUrjVZcaXrT0vuqdp5N8iGnmhOwmjY12LTr+gy4hUZrDTbfqMghCeQCReK/IjP3WJLxW5VWNqbP8GmnozNCBUxjHkt51Cs3Ty8cgrvsRh/s20ybzp9oV3ApLKDBz5PrQDEd8byBE9HWjYBZGOu3GwP3Ci/E9s1Yj55FYor0zKMEt/1JrOjN3lAbfBN9m6HfniKuxydKnkp+N1ePnwNlyuJV9WOWiTk6AOQMc0dgkzgiS6RkECMRXx8ll90q6AKxMRk="
+addons:
+  sonarcloud:
+    organization: " innovative1st-github"
+    token:
+      secure: $SOMEVAR
 before_install:
  - chmod +x mvnw
+ script:
+  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar
+ 
+ 
+ 
+ 
