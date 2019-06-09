@@ -1,0 +1,16 @@
+addons: 
+  sonarcloud: 
+    organization: " innovative1st-github"
+    token: 
+      secure: "$SONAR_TOKEN"
+before_install: 
+  - "chmod +x mvnw"
+cache: 
+  directories: 
+    - $HOME/.m2/repository
+    - $HOME/.sonar/cache
+jdk: openjdk8
+language: java
+script: 
+  - "mvn clean verify sonar:sonar -Pcoverage"
+sudo: required
