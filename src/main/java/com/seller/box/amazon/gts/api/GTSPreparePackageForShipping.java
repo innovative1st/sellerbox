@@ -22,6 +22,7 @@ import com.amazonaws.services.gtsexternalsecurity.model.PreparePackageForShippin
 import com.seller.box.amazon.gts.data.PreparePackageForShippingData;
 import com.seller.box.amazon.gts.data.ShipmentIdentifiers;
 import com.seller.box.form.Shipment;
+import com.seller.box.utils.SBConstant;
 import com.seller.box.utils.SBUtils;
 
 
@@ -30,20 +31,20 @@ public class GTSPreparePackageForShipping extends GTSService {
 	private static final Logger logger = LogManager.getLogger(GTSPreparePackageForShipping.class);
     private PreparePackageForShippingRequest request;
 
-    public void buildLabelRequest(Shipment ps) {
-        logger.info("buildLabelRequest(PackageForShipping ps) for EDI_ORDER_ID = "+ ps.getEdiOrderId()+"/"+ps.getShipmentId()+" ------------ START");
-        request = PreparePackageForShippingData.buildPPFSRequest(ps);
-        logger.info("RequestObjectForPPFSE>>>" + request.toString());
-        logger.info("buildLabelRequest(PackageForShipping ps) for EDI_ORDER_ID = "+ ps.getEdiOrderId()+"/"+ps.getShipmentId()+" ------------ END");
+    public void buildLabelRequest(String requestId, Shipment ps) {
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"buildLabelRequest(PackageForShipping ps) for EDI_ORDER_ID = "+ ps.getEdiOrderId()+"/"+ps.getShipmentId()+" ------------ START");
+        request = PreparePackageForShippingData.buildPPFSRequest(requestId, ps);
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"RequestObjectForPPFSE>>>" + request.toString());
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"buildLabelRequest(PackageForShipping ps) for EDI_ORDER_ID = "+ ps.getEdiOrderId()+"/"+ps.getShipmentId()+" ------------ END");
     }
     
-    public PreparePackageForShippingResult callPreparePackageForShipping(Shipment ps) {
-        logger.info("callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+") ------------ START");
+    public PreparePackageForShippingResult callPreparePackageForShipping(String requestId, Shipment ps) {
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+") ------------ START");
         PreparePackageForShippingResult result = null;
         try {
             result = gts.preparePackageForShipping(this.request);
             if(result != null) {
-                logger.info("PPFSEResponse>>>" + result.toString());
+                logger.info(requestId+SBConstant.LOG_SEPRATOR+"PPFSEResponse>>>" + result.toString());
                 String shiplabelFilepath = printLabelData(result, ps.getShipmentId());
                 ShipmentIdentifiers.setAmazonBarcode(result.getAmazonBarcode());
                 ps.setShiplabelFilepath(shiplabelFilepath);
@@ -51,7 +52,6 @@ public class GTSPreparePackageForShipping extends GTSService {
                 ps.setTrackingId(result.getTrackingId());
                 ps.setReadyToPickUpTimeUTC(result.getShippingInfo().getPickUpDateUTC());
                 ps.setCarrierName(result.getShippingInfo().getCarrierName());
-                //TODO ADFUtils.putValueInPageflow("PackageForShipping", ps);
             }
         } catch (AmazonServiceException ase) {
             System.out.println(ase.getErrorCode());
@@ -61,17 +61,17 @@ public class GTSPreparePackageForShipping extends GTSService {
             String[] err = ase.getMessage().split(":");
             String errm = err[err.length - 1].trim();
             ps.setManifestErrorMessage(errm);
-            logger.error("AmazonServiceException Occured, callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+")", ase);
+            logger.error(requestId+SBConstant.LOG_SEPRATOR+"AmazonServiceException Occured, callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+")", ase);
         } catch (AmazonClientException ace) {
             System.out.println(ace.getMessage());
             String[] err = ace.getMessage().split(":");
             String errm = err[err.length - 1].trim();
             ps.setManifestErrorMessage(errm);
-            logger.error("AmazonClientException Occured, callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+")", ace);
+            logger.error(requestId+SBConstant.LOG_SEPRATOR+"AmazonClientException Occured, callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+")", ace);
         } catch (Exception e) {
-            logger.error("General Exception Occured, callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+")", e);
+            logger.error(requestId+SBConstant.LOG_SEPRATOR+"General Exception Occured, callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+")", e);
         }
-        logger.info("callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+") ------------ END");
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+") ------------ END");
         return result;
     }
 

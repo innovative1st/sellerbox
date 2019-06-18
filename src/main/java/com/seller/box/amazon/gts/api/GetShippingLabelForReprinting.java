@@ -16,24 +16,6 @@ public class GetShippingLabelForReprinting extends GTSService {
 	private static final Logger logger = LogManager.getLogger(GetShippingLabelForReprinting.class);
 	private GetShippingLabelsForReprintingRequest request;
 	
-//    public void buildReprintLabelRequest() {
-//            this.request = GetShippingLabelForReprintingData.buildReprintRequest();
-//            System.out.println("Reprint Request" + request.toString());
-//    }
-//    public void callGTSReprintLabel() {
-//        GetShippingLabelsForReprintingResult result = gts.getShippingLabelsForReprinting(this.request);
-//        System.out.println("Reprint Response" + result.toString());
-//        PackageShippingLabel label = result.getLabels().get(0);
-//        ByteBuffer labelStream = label.getLabelStream();
-//        System.out.println("LabelFormatType : "+label.getLabelFormatType());
-//        LabelDimensions labelDiamention = label.getLabelDimensions();
-//        Dimension diamention = labelDiamention.getLength();
-//        diamention.getDimensionUnit();
-//        diamention.getDimensionValue();
-//        System.out.println("LabelStream size"+ labelStream.array().length);
-//        String labelString = DatatypeConverter.printBase64Binary(labelStream.array());
-//        System.out.println("Label = \n" +labelString);
-//    }
 
     public void buildReprintLabelRequest(Shipment ps) {
         logger.info("buildReprintLabelRequest()------------------------------- START : " + ps.getEdiOrderId());

@@ -8,7 +8,6 @@ import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +36,7 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping("/order/cancellation")
 @Api(tags = "Order Cancellation", position= 5, value="Order Cancellation", consumes= "application/x-www-form-urlencoded", description="API to retrieve or create cancellation for an order.")
 public class OrderCancellationController {
-private static final Logger logger = LogManager.getLogger(OrderController.class);
+	private static final Logger logger = LogManager.getLogger(OrderController.class);
 	@Autowired
 	OrderCancellationService orderCancellationService;
 	@Autowired

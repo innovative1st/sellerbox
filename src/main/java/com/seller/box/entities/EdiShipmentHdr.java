@@ -204,6 +204,8 @@ public class EdiShipmentHdr implements Serializable{
 	private String packedBy;
 	@Column(name = "IS_ACCEPTED")
 	private int isAccepted;
+	@Column(name = "IS_SIDELINE")
+	private int isSideline;
 	@Column(name = "IS_CANCELED")
 	private int isCanceled;
 	@Column(name = "IS_ASN_SEND")
@@ -214,6 +216,8 @@ public class EdiShipmentHdr implements Serializable{
 	private int isMeasureDone;
 	@Column(name = "OMS_UPLOAD_ERROR_MSG")
 	private String omsUploadErrorMsg;
+	@Column(name = "REASON_FOR_SIDELINE")
+	private String reasonForSideline;
 	@Column(name = "BATCH_ID")
 	private String batchId;
 	@Column(name = "REF_ORDER_ID")
@@ -948,6 +952,14 @@ public class EdiShipmentHdr implements Serializable{
 	public void setIsCanceled(int isCanceled) {
 		this.isCanceled = isCanceled;
 	}
+	
+	public int getIsSideline() {
+		return isSideline;
+	}
+
+	public void setIsSideline(int isSideline) {
+		this.isSideline = isSideline;
+	}
 
 	public int getIsAsnSend() {
 		return isAsnSend;
@@ -981,6 +993,14 @@ public class EdiShipmentHdr implements Serializable{
 		this.omsUploadErrorMsg = omsUploadErrorMsg;
 	}
 
+	public String getReasonForSideline() {
+		return reasonForSideline;
+	}
+
+	public void setReasonForSideline(String reasonForSideline) {
+		this.reasonForSideline = reasonForSideline;
+	}
+	
 	public String getBatchId() {
 		return batchId;
 	}
@@ -1040,8 +1060,8 @@ public class EdiShipmentHdr implements Serializable{
 				+ fulfilmentType + ", processInstanceId=" + processInstanceId + ", orderFilePath=" + orderFilePath
 				+ ", shipLabelFilepath=" + shipLabelFilepath + ", createdBy=" + createdBy + ", createdDate="
 				+ createdDate + ", manifestDate=" + manifestDate + ", packedBy=" + packedBy + ", isAccepted="
-				+ isAccepted + ", isCanceled=" + isCanceled + ", isAsnSend=" + isAsnSend + ", isOmsUpload="
-				+ isOmsUpload + ", isMeasureDone=" + isMeasureDone + ", omsUploadErrorMsg=" + omsUploadErrorMsg
+				+ isAccepted + ", isCanceled=" + isCanceled + ", isSideline=" + isSideline + ", isAsnSend=" + isAsnSend + ", isOmsUpload="
+				+ isOmsUpload + ", isMeasureDone=" + isMeasureDone + ", omsUploadErrorMsg=" + omsUploadErrorMsg + ", reasonForSideline=" + reasonForSideline
 				+ ", batchId=" + batchId + ", refOrderId=" + refOrderId + ", ediShipmentItems=" + ediShipmentItems
 				+ "]";
 	}

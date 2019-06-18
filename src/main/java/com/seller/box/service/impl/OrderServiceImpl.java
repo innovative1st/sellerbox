@@ -1,8 +1,10 @@
 package com.seller.box.service.impl;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -32,6 +34,8 @@ import com.seller.box.entities.EdiShipmentItems;
 import com.seller.box.entities.EdiShipmentOfr;
 import com.seller.box.entities.ProductDetails;
 import com.seller.box.entities.ProductMeasurements;
+import com.seller.box.form.Shipment;
+import com.seller.box.form.ShipmentItem;
 import com.seller.box.service.InventoryService;
 import com.seller.box.service.OrderService;
 import com.seller.box.utils.KafkaUtils;
@@ -60,6 +64,8 @@ public class OrderServiceImpl implements OrderService {
 	EdiShipmentAsnDao ediShipmentAsnDao;
 	@Autowired
 	ProductSearchDao productSearchDao;
+	@Autowired
+	EdiShipmentDao shipmentDao;
 	
 	@Override
 	@Async
@@ -693,6 +699,140 @@ public class OrderServiceImpl implements OrderService {
 		} 
 		logger.info(requestId + SBConstant.LOG_SEPRATOR + "isOfrExistByEdiOrderId(String requestId, Long ediOrderId, int orderStatus)---END");
 		return ofrId;
+	}
+	
+	@Override
+	public Shipment getShipmentForPacking(Long ediOrderId, EdiShipmentHdr sh) {
+		logger.info("getShipmentForPacking(Long ediOrderId)"+SBConstant.LOG_SEPRATOR_WITH_START);
+		Shipment shipment = null;
+		try {
+			if(sh == null) {
+				sh = new EdiShipmentHdr();
+			}
+			if(sh != null) {
+				sh = shipmentDao.findByEdiOrderId(ediOrderId);
+			}
+			if(sh != null) {
+				shipment = new Shipment();
+				shipment.setEdiOrderId(sh.getEdiOrderId());
+				shipment.setReadyToPickUpTimeUTC(null);
+				shipment.setOperatingWarehouseCode(sh.getWarehouseCode());
+				shipment.setShipmentId(sh.getShipmentId());
+				shipment.setOrderId(sh.getOrderId());
+				shipment.setOriginWarehouseCode(sh.getWarehouseCode());
+				shipment.setPackageId(Integer.toString(sh.getPackageId()));
+				shipment.setHeightDimensionUnit(sh.getPackageHeightUnit());   
+				shipment.setHeightDimensionValue(sh.getPackageHeightValue());   
+				shipment.setLengthDimensionUnit(sh.getPackageLengthUnit());    
+				shipment.setLengthDimensionValue(sh.getPackageLengthValue());   
+				shipment.setWidthDimensionUnit(sh.getPackageWidthUnit());     
+				shipment.setWidthDimensionValue(sh.getPackageWidthValue());   
+				shipment.setWeightDiamensionUnit(sh.getPackageWeightUnit());  
+				shipment.setWeightDiamensionValue(sh.getPackageWeightValue()); 
+				shipment.setLabelLengthDimensionUnit(sh.getLabelLengthUnit());
+				shipment.setLabelLengthDimensionValue(sh.getLabelLengthValue());
+				shipment.setLabelWidthDimensionUnit(sh.getLabelWidthUnit());
+				shipment.setLabelWidthDimensionValue(sh.getLabelWidthValue());   
+				shipment.setLabelFormatType(sh.getLabelFormatType());
+				shipment.setBarcode(sh.getBarcode());
+				shipment.setLoadId(sh.getLoadId());
+				shipment.setTrailorId(sh.getTrailorId());
+				shipment.setTrackingId(sh.getTrackingId());
+				shipment.setCarrierName(sh.getCarrierName());
+				//shipment.setInvoiceFilepath(orderDao.getInvoiceFilepath(shipmentHdr.getShipmentId()));
+				shipment.setShiplabelFilepath(sh.getShipLabelFilepath());
+				shipment.setManifestId(sh.getManifestId());
+				shipment.setManifestErrorMessage(null);
+				shipment.setPaymentType(sh.getPaymentType());
+				shipment.setBalanceDue(sh.getBalanceDue());
+				shipment.setCurrencyCode(sh.getCurrencyCode());
+				shipment.setMarketplaceId(Integer.toString(sh.getOrderSiteId()));
+				shipment.setBraaPpType(sh.getBraaPpType());
+				shipment.setBraaPpTypeIdentifier(sh.getBraaPpTypeIdentifier());
+				shipment.setBraaPpQuantity(sh.getBraaPpQuantity());
+				shipment.setOrderCancelled(sh.getIsCanceled());
+				shipment.setIsGift(sh.getIsGift());
+				shipment.setIsGiftWrap(sh.getIsGiftWrap());
+				shipment.setIsFastTrack(sh.getIsPriorityShipment());
+				shipment.setIsPaperDunnage(SBUtils.isNull(sh.getBraaPpTypeIdentifier()) == true ? 0 : 1);
+				shipment.setShipMethod(sh.getShipMethod());
+				shipment.setBoxType(sh.getBoxType());
+				shipment.setPackageLengthValue(sh.getPackageLengthValue());
+				shipment.setPackageLengthUnit(sh.getPackageLengthUnit());
+				shipment.setPackageWidthValue(sh.getPackageWidthValue());
+				shipment.setPackageWidthUnit(sh.getPackageWidthUnit());
+				shipment.setPackageHeightValue(sh.getPackageHeightValue());
+				shipment.setPackageHeightUnit(sh.getPackageHeightUnit());
+				shipment.setPackageWeightValue(sh.getPackageWeightValue());
+				shipment.setPackageWeightUnit(sh.getPackageWeightUnit());
+				List<ShipmentItem> shipmentItem = new ArrayList<ShipmentItem>();
+				for(EdiShipmentItems item : sh.getEdiShipmentItems()) {
+					ShipmentItem si = new ShipmentItem();
+					si.setItemSeq(item.getLineItemSeq());
+					si.setSkuCode(item.getSkuCode());
+					si.setEan(item.getEan());
+					si.setItemId(item.getItemId());
+					si.setFnsku(item.getFnsku());
+					si.setProductName(item.getProductName());
+					si.setQuantity(item.getQuantity());
+					si.setQuantityPacked(0);
+					si.setThumbnailUrl(item.getThumbnailUrl());
+					si.setCustomerOrderItemID(item.getOrderItemId());
+					si.setCustomerOrderItemDetailID(item.getCustomerOrderItemDetailId() != null ? item.getCustomerOrderItemDetailId().toString() : null);
+					si.setBayNo(item.getBayNo());
+					si.setRackNo(item.getRackNo());
+					si.setQntFromInv(item.getQntFromInv());
+					si.setQntFromProd(item.getQntFromVir());
+					si.setIsGift(SBUtils.isNull(item.getGiftLabelContent()) == true ? 0 : 1);
+					si.setIsGiftWrap(SBUtils.isNull(item.getGiftWrapId()) == true ? 0 : 1);
+					si.setGiftLabelContent(item.getGiftLabelContent());
+					shipmentItem.add(si);
+				}
+				shipment.setShipmentItem(shipmentItem);
+			}
+		} catch (Exception e) {
+			logger.error("Exception :: getShipmentForPacking(Long ediOrderId)", e);
+		}
+		logger.info("getShipmentForPacking(Long ediOrderId)"+SBConstant.LOG_SEPRATOR_WITH_END);
+		return shipment;
+	}
+
+	@Override
+	public String makeSidelineShipment(Long ediOrderId, String sidelineReason) {
+		logger.info("makeSidelineShipment(Long ediOrderId, String sidelineReason)"+SBConstant.LOG_SEPRATOR_WITH_START);
+		String status = SBConstant.TXN_STATUS_SUCCESS;
+		try {
+			String sql = "UPDATE SELLER.EDI_SHIPMENT_HDR SET IS_SIDELINE = IFNULL(IS_SIDELINE, 0)+1, REASON_FOR_SIDELINE = '"+sidelineReason+"' WHERE EDI_ORDER_ID = "+ ediOrderId;
+			int count = jdbcTemplate.update(sql);
+			if(count == 0) {
+				status = SBConstant.TXN_STATUS_NO_DATA;
+			}
+		} catch (Exception e) {
+			status = SBConstant.TXN_STATUS_EXCEPTION;
+			logger.error("Exception :: makeSidelineShipment(Long ediOrderId, String sidelineReason)", e);
+		}
+		
+		logger.info("makeSidelineShipment(Long ediOrderId, String sidelineReason)"+SBConstant.LOG_SEPRATOR_WITH_END);
+		return status;
+	}
+
+	@Override
+	public String skipShipment(Long ediOrderId, String reasonForSkip) {
+		logger.info("skipShipment(Long ediOrderId, String reasonForSkip)"+SBConstant.LOG_SEPRATOR_WITH_START);
+		String status = SBConstant.TXN_STATUS_SUCCESS;
+		try {
+			String sql = "UPDATE SELLER.EDI_SHIPMENT_HDR SET IS_SKIP = IFNULL(IS_SKIP, 0)+1 WHERE EDI_ORDER_ID = "+ ediOrderId;
+			int count = jdbcTemplate.update(sql);
+			if(count == 0) {
+				status = SBConstant.TXN_STATUS_NO_DATA;
+			}
+		} catch (Exception e) {
+			status = SBConstant.TXN_STATUS_EXCEPTION;
+			logger.error("Exception :: skipShipment(Long ediOrderId, String reasonForSkip)", e);
+		}
+		
+		logger.info("skipShipment(Long ediOrderId, String reasonForSkip)"+SBConstant.LOG_SEPRATOR_WITH_END);
+		return status;
 	}
 }
  

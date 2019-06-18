@@ -173,140 +173,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
 				logger.error(requestId + SBConstant.LOG_SEPRATOR + "Exception :: createOrderCancellation(String requestId, OC oc, String vendorPartyId, int etailorId, String user)", e);
 			} finally {
 				if(response.getStatus().equalsIgnoreCase(SBConstant.TXN_STATUS_SUCCESS)) {
-					if(xoc.getOcId() > 0) {
-						if (SBUtils.getPropertyValue("manifest.etailor.id.list").contains(String.valueOf(etailorId))) {
-							//PROCESS OCR with respect to OC 
-							EdiShipmentHdr shipment = ediShipmentDoa.findByShipmentIdAndWarehouseCode(oc.getPurchaseOrderNumber(), oc.getWarehouseLocationId());
-							if(shipment != null) {
-								xoc.setCustomerOrderNumber(shipment.getOrderId());
-								xoc.setEdiOrderId(shipment.getEdiOrderId());
-								int	isIanDone = 3;
-								int isOcrDone = 2;
-								int isCancelled=2;
-								String ocrRespCond = null; 
-								String ocrResultCd = null; 
-								if(shipment.getOrderStatus() < 2) { 			//0=Unassigned, 1=New
-									shipment.setOrderStatus(4);	
-									shipment.setIsCanceled(1);
-									for(EdiShipmentOcItems itm : xoc.getEdiShipmentOcItems()) {
-										itm.setIsIan(3);//Not Required
-										itm.setResponseCondition("SUCCESS");
-										itm.setResultCode("89");
-										itm.setResultDescription("INVENTORY MOVED TO PRIME");	
-										for(EdiShipmentItems si : shipment.getEdiShipmentItems()) {
-											if(si.getItemId().equalsIgnoreCase(itm.getItemId())) {
-												itm.setEdiItemId(si.getEdiItemId());
-											}
-										}
-									}
-									ocrRespCond = "SUCCESS"; 
-									ocrResultCd = "00"; 
-								} else if(shipment.getOrderStatus() == 2 || shipment.getOrderStatus() == 5) {//2=Accept, 5=Side line
-									if(shipment.getFulfilmentType() == null) { 	//Inventory picked not created
-										shipment.setOrderStatus(4);	
-										shipment.setIsCanceled(1);
-										for(EdiShipmentOcItems itm : xoc.getEdiShipmentOcItems()) {
-											itm.setIsIan(3);//Not Required
-											itm.setResponseCondition("SUCCESS");
-											itm.setResultCode("89");
-											itm.setResultDescription("INVENTORY MOVED TO PRIME");		
-											for(EdiShipmentItems si : shipment.getEdiShipmentItems()) {
-												if(si.getItemId().equalsIgnoreCase(itm.getItemId())) {
-													itm.setEdiItemId(si.getEdiItemId());
-												}
-											}
-										}
-										ocrRespCond = "SUCCESS"; 
-										ocrResultCd = "00"; 
-									} else {									//Inventory picked already created
-										shipment.setOrderStatus(4);	
-										shipment.setIsCanceled(1);
-										for(EdiShipmentOcItems itm : xoc.getEdiShipmentOcItems()) {
-											itm.setResponseCondition("SUCCESS");
-											itm.setResultCode("88");
-											itm.setResultDescription("PENDING-CANCELLED");	
-											ServiceResponse ocIanResp = createIanAgainstOcItem(requestId, etailorId, oc.getWarehouseLocationId(), oc.getPurchaseOrderNumber(), itm, user);
-											if(ocIanResp.getStatus().equalsIgnoreCase(SBConstant.TXN_STATUS_SUCCESS)) {
-												if (ocIanResp.getUniqueKey() != null) {
-													itm.setIanId(Long.parseLong(ocIanResp.getUniqueKey()));
-													itm.setIsIan(2);
-												} 
-											} else {
-												itm.setIsIan(5);
-											}
-											for(EdiShipmentItems si : shipment.getEdiShipmentItems()) {
-												if(si.getItemId().equalsIgnoreCase(itm.getItemId())) {
-													itm.setEdiItemId(si.getEdiItemId());
-												}
-											}
-										}
-										isIanDone 	= 2;
-										ocrRespCond = "SUCCESS"; 
-										ocrResultCd = "01"; 
-									}
-								} else if(shipment.getOrderStatus() == 4) { 	//4=Cancelled
-									isCancelled = 4;
-								} else if(shipment.getOrderStatus() == 9) { 	//9=Packed
-									for(EdiShipmentOcItems itm : xoc.getEdiShipmentOcItems()) {
-										itm.setIsIan(3);
-										itm.setResponseCondition("FAILURE");
-										itm.setResultCode("03");
-										itm.setResultDescription("Item is packed");	
-										for(EdiShipmentItems si : shipment.getEdiShipmentItems()) {
-											if(si.getItemId().equalsIgnoreCase(itm.getItemId())) {
-												itm.setEdiItemId(si.getEdiItemId());
-											}
-										}
-									}
-									isCancelled = 3;
-									ocrRespCond = "FAILURE"; 
-									ocrResultCd = "03";
-								} else if(shipment.getOrderStatus() > 9) {		//10=Delivery Created, 11=Shipped, 12=Completed
-									for(EdiShipmentOcItems itm : xoc.getEdiShipmentOcItems()) {
-										itm.setIsIan(3);
-										itm.setResponseCondition("FAILURE");
-										itm.setResultCode("03");
-										itm.setResultDescription("Item is shipped");	
-										for(EdiShipmentItems si : shipment.getEdiShipmentItems()) {
-											if(si.getItemId().equalsIgnoreCase(itm.getItemId())) {
-												itm.setEdiItemId(si.getEdiItemId());
-											}
-										}
-									}
-									isCancelled = 3;
-									ocrRespCond = "FAILURE"; 
-									ocrResultCd = "03";
-								}
-								
-								try {
-									ediShipmentDoa.save(shipment);
-								} catch (Exception e) {
-									isCancelled = 5;
-								}
-								boolean isOcr = isOcrExist(requestId, etailorId, oc.getWarehouseLocationId(), oc.getPurchaseOrderNumber());
-								if(isOcr) {
-									isOcrDone = 4;
-								} 
-								xoc.setIsCancelDone(isCancelled);
-								xoc.setIsIanDone(isIanDone);
-								xoc.setIsOcrDone(isOcrDone);
-								xoc.setResponseCondition(ocrRespCond);
-								xoc.setResultCode(ocrResultCd);
-								xoc = ediShipmentOCDoa.save(xoc);
-								
-								if(isOcrDone == 2) {
-									logger.info(requestId + SBConstant.LOG_SEPRATOR + "OCR for OC '" + xoc.getOcId() + "' " + SBConstant.LOG_SEPRATOR + "START");
-									ServiceResponse ocResp = createOcrAgainstOc(requestId, xoc);
-									logger.info(requestId + SBConstant.LOG_SEPRATOR + "OCR Response >>>"+ocResp.toString());
-									logger.info(requestId + SBConstant.LOG_SEPRATOR + "OCR for OC '" + xoc.getOcId() + "' " + SBConstant.LOG_SEPRATOR + "END");
-								}
-							} else {
-								xoc.setIsCancelDone(4);
-								xoc = ediShipmentOCDoa.save(xoc);
-							}
-						}
-						//TODO MAKE INVENTORY RETURNS
-					}
+					processOcrAgainstOc(requestId, oc, etailorId, user, xoc);
 				}
 			}
 			
@@ -318,7 +185,178 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
 		logger.info(requestId + SBConstant.LOG_SEPRATOR + "processOC(String requestId, OC oc, String vendorPartyId, int etailorId, String user)---END");
 		return response;
 	}
+
+	private void processOcrAgainstOc(String requestId, OC oc, int etailorId, String user, EdiShipmentOc xoc) {
+		if(xoc != null) {
+			if (SBUtils.getPropertyValue("manifest.etailor.id.list").contains(String.valueOf(etailorId))) {
+				//PROCESS OCR with respect to OC 
+				EdiShipmentHdr shipment = ediShipmentDoa.findByShipmentIdAndWarehouseCode(oc.getPurchaseOrderNumber(), oc.getWarehouseLocationId());
+				if(shipment != null) {
+					xoc.setCustomerOrderNumber(shipment.getOrderId());
+					xoc.setEdiOrderId(shipment.getEdiOrderId());
+					int	isIanReq  = 3;
+					int isOcrDone = 2;
+					int isCancelled=2;
+					String ocrRespCond = null; 
+					String ocrResultCd = null; 
+					if(shipment.getOrderStatus() < 2) { 			//0=Unassigned, 1=New
+						shipment.setOrderStatus(4);	
+						shipment.setIsCanceled(1);
+						for(EdiShipmentOcItems itm : xoc.getEdiShipmentOcItems()) {
+							itm.setIsIan(3);//Not Required
+							itm.setResponseCondition("SUCCESS");
+							itm.setResultCode("89");
+							itm.setResultDescription("INVENTORY MOVED TO PRIME");	
+							for(EdiShipmentItems si : shipment.getEdiShipmentItems()) {
+								if(si.getItemId().equalsIgnoreCase(itm.getItemId())) {
+									itm.setEdiItemId(si.getEdiItemId());
+								}
+							}
+						}
+						ocrRespCond = "SUCCESS"; 
+						ocrResultCd = "00"; 
+					} else if(shipment.getOrderStatus() == 2 || shipment.getOrderStatus() == 5) {//2=Accept, 5=Side line
+						if(shipment.getFulfilmentType() == null) { 	//Inventory picked not created
+							shipment.setOrderStatus(4);	
+							shipment.setIsCanceled(1);
+							for(EdiShipmentOcItems itm : xoc.getEdiShipmentOcItems()) {
+								itm.setIsIan(3);//Not Required
+								itm.setResponseCondition("SUCCESS");
+								itm.setResultCode("89");
+								itm.setResultDescription("INVENTORY MOVED TO PRIME");		
+								for(EdiShipmentItems si : shipment.getEdiShipmentItems()) {
+									if(si.getItemId().equalsIgnoreCase(itm.getItemId())) {
+										itm.setEdiItemId(si.getEdiItemId());
+									}
+								}
+							}
+							ocrRespCond = "SUCCESS"; 
+							ocrResultCd = "00"; 
+						} else {									//Inventory picked already created
+							shipment.setOrderStatus(4);	
+							shipment.setIsCanceled(1);
+							for(EdiShipmentOcItems itm : xoc.getEdiShipmentOcItems()) {
+								itm.setResponseCondition("SUCCESS");
+								itm.setResultCode("88");
+								itm.setResultDescription("PENDING-CANCELLED");	
+								ServiceResponse ocIanResp = createIanAgainstOcItem(requestId, etailorId, oc.getWarehouseLocationId(), oc.getPurchaseOrderNumber(), itm, user);
+								if(ocIanResp.getStatus().equalsIgnoreCase(SBConstant.TXN_STATUS_SUCCESS)) {
+									if (ocIanResp.getUniqueKey() != null) {
+										itm.setIanId(Long.parseLong(ocIanResp.getUniqueKey()));
+										itm.setIsIan(2);
+									} 
+								} else {
+									itm.setIsIan(5);
+								}
+								for(EdiShipmentItems si : shipment.getEdiShipmentItems()) {
+									if(si.getItemId().equalsIgnoreCase(itm.getItemId())) {
+										itm.setEdiItemId(si.getEdiItemId());
+									}
+								}
+							}
+							isIanReq 	= 2;
+							ocrRespCond = "SUCCESS"; 
+							ocrResultCd = "01"; 
+						}
+					} else if(shipment.getOrderStatus() == 4) { 	//4=Cancelled
+						isCancelled = 4;
+					} else if(shipment.getOrderStatus() == 9) { 	//9=Packed
+						for(EdiShipmentOcItems itm : xoc.getEdiShipmentOcItems()) {
+							itm.setIsIan(3);
+							itm.setResponseCondition("FAILURE");
+							itm.setResultCode("03");
+							itm.setResultDescription("Item is packed");	
+							for(EdiShipmentItems si : shipment.getEdiShipmentItems()) {
+								if(si.getItemId().equalsIgnoreCase(itm.getItemId())) {
+									itm.setEdiItemId(si.getEdiItemId());
+								}
+							}
+						}
+						isCancelled = 3;
+						ocrRespCond = "FAILURE"; 
+						ocrResultCd = "03";
+					} else if(shipment.getOrderStatus() > 9) {		//10=Delivery Created, 11=Shipped, 12=Completed
+						for(EdiShipmentOcItems itm : xoc.getEdiShipmentOcItems()) {
+							itm.setIsIan(3);
+							itm.setResponseCondition("FAILURE");
+							itm.setResultCode("03");
+							itm.setResultDescription("Item is shipped");	
+							for(EdiShipmentItems si : shipment.getEdiShipmentItems()) {
+								if(si.getItemId().equalsIgnoreCase(itm.getItemId())) {
+									itm.setEdiItemId(si.getEdiItemId());
+								}
+							}
+						}
+						isCancelled = 3;
+						ocrRespCond = "FAILURE"; 
+						ocrResultCd = "03";
+					}
+					
+					try {
+						ediShipmentDoa.save(shipment);
+					} catch (Exception e) {
+						isCancelled = 5;
+					}
+					boolean isOcr = isOcrExist(requestId, etailorId, oc.getWarehouseLocationId(), oc.getPurchaseOrderNumber());
+					if(isOcr) {
+						isOcrDone = 4;
+					} 
+					xoc.setIsCancelDone(isCancelled);
+					xoc.setIsIanDone(isIanReq);
+					xoc.setIsOcrDone(isOcrDone);
+					xoc.setResponseCondition(ocrRespCond);
+					xoc.setResultCode(ocrResultCd);
+					xoc = ediShipmentOCDoa.save(xoc);
+					
+					if(isOcrDone == 2) {
+						logger.info(requestId + SBConstant.LOG_SEPRATOR + "OCR for OC '" + xoc.getOcId() + "' " + SBConstant.LOG_SEPRATOR + "START");
+						ServiceResponse ocResp = createOcrAgainstOc(requestId, xoc);
+						logger.info(requestId + SBConstant.LOG_SEPRATOR + "OCR Response >>>"+ocResp.toString());
+						logger.info(requestId + SBConstant.LOG_SEPRATOR + "OCR for OC '" + xoc.getOcId() + "' " + SBConstant.LOG_SEPRATOR + "END");
+					}
+
+					if (isIanReq == 2) {
+						createIanAgainstOc(requestId, xoc);
+						//TODO MAKE INVENTORY RETURNS
+					}
+					
+				} else {
+					xoc.setIsCancelDone(4);
+					xoc = ediShipmentOCDoa.save(xoc);
+				}
+			}
+		}
+	}
 	
+	private void createIanAgainstOc(String requestId, EdiShipmentOc xoc) {
+		logger.info(requestId+SBConstant.LOG_SEPRATOR+"createIanAgainstOc(String requestId, EdiShipmentOc xoc)"+SBConstant.LOG_SEPRATOR_WITH_START);
+		if(xoc != null) {
+			if(xoc.getEdiShipmentOcItems() != null) {
+				for(EdiShipmentOcItems item : xoc.getEdiShipmentOcItems()) {
+					try {
+						EdiInventoryIanForm input = new EdiInventoryIanForm();
+						input.setRequestId(requestId);
+						input.setWarehouseCode(xoc.getWarehouseLocationId());;
+						input.setEtailorId(xoc.getEretailorId());
+						input.setSkuCode(item.getSkuCode());
+						input.setFnsku(item.getFnSku());
+						input.setQuantity(item.getQuantity());
+						input.setAdjustmentType(SBConstant.IAN_ADUSTMENT_TYPE_STATUS_CHANGE);
+						input.setPurchaseOrderNumber(xoc.getPurchaseOrderNumber());
+						input.setInventorySourceLocation(SBConstant.IAN_LOCATION_TYPE_PENDING_CANCELLED);
+						input.setInventoryDestinationLocation(SBConstant.IAN_LOCATION_TYPE_PRIME);
+						input.setCreatedBy(SBUtils.getPropertyValue("sb.api.owner"));
+						ServiceResponse response = inventoryService.makeIAN(input);
+						logger.info("IAN Response >>>> " + response.toString());
+					} catch (Exception e) {
+						logger.info(requestId+SBConstant.LOG_SEPRATOR+"createIanAgainstOc(String requestId, EdiShipmentOc xoc)", e);
+					}
+				}
+			}
+		}
+		logger.info(requestId+SBConstant.LOG_SEPRATOR+"createIanAgainstOc(String requestId, EdiShipmentOc xoc)"+SBConstant.LOG_SEPRATOR_WITH_END);
+	}
+
 	@Override
 	public Long isOrderCancellationExist(String requestId, int etailorId, String warehouseCode, String shipmentId) {
 		logger.info(requestId + SBConstant.LOG_SEPRATOR + "isOrderCancellationExist(String requestId, int etailorId, String warehouseCode, String shipmentId)---START");

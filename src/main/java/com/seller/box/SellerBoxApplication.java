@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @EnableAsync(proxyTargetClass = true)
-public class SellerBoxApplication extends ServletInitializer {
+public class SellerBoxApplication extends ServletInitializer{
 
 	public static void main(String[] args) {
 		SpringApplication.run(SellerBoxApplication.class, args);

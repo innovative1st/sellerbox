@@ -42,7 +42,7 @@ import io.swagger.annotations.ApiOperation;
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-@Api(tags= {"Inventory"}, position = 2, value="Product", consumes= "application/x-www-form-urlencoded", description="API to retrieve or manipulate product related information.")
+@Api(tags= {"Inventory"}, position = 2, value="Inventory", consumes= "application/x-www-form-urlencoded", description="API to retrieve or manipulate inventory related information.")
 @RequestMapping("/inventory")
 public class InventoryController {
 	private static final Logger logger = LogManager.getLogger(InventoryController.class);

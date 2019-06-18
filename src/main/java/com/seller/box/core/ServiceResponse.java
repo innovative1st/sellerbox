@@ -1,6 +1,9 @@
 package com.seller.box.core;
 
-public class ServiceResponse {
+import java.io.Serializable;
+
+public class ServiceResponse implements Serializable{
+	private static final long serialVersionUID = 1L;
 	private int responseCode;
 	private String responseMessage;
 	private String uniqueKey;

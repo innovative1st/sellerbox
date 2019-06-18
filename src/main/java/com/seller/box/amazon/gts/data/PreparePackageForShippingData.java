@@ -25,15 +25,16 @@ import com.amazonaws.services.gtsexternalsecurity.model.ShipmentInfoForShipping;
 import com.amazonaws.services.gtsexternalsecurity.model.Weight;
 import com.seller.box.form.Shipment;
 import com.seller.box.form.ShipmentItem;
+import com.seller.box.utils.SBConstant;
 
 
 
 public class PreparePackageForShippingData {
 	private static final Logger logger = LogManager.getLogger(PreparePackageForShippingData.class);
 
-    public static PreparePackageForShippingRequest buildPPFSRequest(Shipment ps) {
+    public static PreparePackageForShippingRequest buildPPFSRequest(String requestId, Shipment ps) {
         
-        logger.info("buildPPFSRequest()------------------------------- START : "+ ps.getShipmentId());
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"buildPPFSRequest()------------------------------- START : "+ ps.getShipmentId());
         
         PreparePackageForShippingData ppsData = new PreparePackageForShippingData();
         //Shipping Request
@@ -43,15 +44,15 @@ public class PreparePackageForShippingData {
         //Operation Mode
         request.setOperationMode(ps.getOperationMode());
         //ServiceOption
-        ServiceOptions serviceOptions = getServiceInfoDetails(ps.getPickUpType());
+        ServiceOptions serviceOptions = getServiceInfoDetails(requestId, ps.getPickUpType());
         request.setServiceOptions(serviceOptions);
         //Operation Wearhouse Id
         request.setOperatingWarehouseId(ps.getOperatingWarehouseCode());
         //Shipment Info
-        ShipmentInfoForShipping shipmentInfo = ppsData.createShipmentInfoForShipping(ps);
+        ShipmentInfoForShipping shipmentInfo = ppsData.createShipmentInfoForShipping(requestId, ps);
         request.setShipmentInfo(shipmentInfo);
         //Label Info
-        LabelSpecification labelSpecification = ppsData.createLabelSpecification(ps);
+        LabelSpecification labelSpecification = ppsData.createLabelSpecification(requestId, ps);
         request.setLabelSpecification(labelSpecification);
         //Manifesting Options
         ManifestingOptions manifestingOptions = new ManifestingOptions();
@@ -62,52 +63,52 @@ public class PreparePackageForShippingData {
         RequestProperties requestproperty = new RequestProperties();
         requestproperty.setRequestId("ExternalClientRequest-" + System.currentTimeMillis());
         requestproperty.setSequenceNumber(1);
-        logger.info("buildPPFSRequest()------------------------------- END : "+ ps.getShipmentId());
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"buildPPFSRequest()------------------------------- END : "+ ps.getShipmentId());
         
         return request;
     }
     
     //Service Info Details
-    private static ServiceOptions getServiceInfoDetails(String pickUpType) {
-        logger.info("getServiceInfoDetails()------------------------------- START" );
+    private static ServiceOptions getServiceInfoDetails(String requestId, String pickUpType) {
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"getServiceInfoDetails()------------------------------- START" );
         ServiceOptions serviceOptions = new ServiceOptions();
         PickUpInfo pickUpInfo = new PickUpInfo();
         pickUpInfo.setPickUpType(pickUpType);
         pickUpInfo.setReadyToPickUpTimeUTC(new Date());
         serviceOptions.setPickUpInfo(pickUpInfo);
         serviceOptions.setRequiresGuaranteedPromisedDelivery(Boolean.TRUE);
-        logger.info("getServiceInfoDetails()------------------------------- END");
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"getServiceInfoDetails()------------------------------- END");
         return serviceOptions;
     }
 
     //Shipment Info
-    private ShipmentInfoForShipping createShipmentInfoForShipping(Shipment ps) {
+    private ShipmentInfoForShipping createShipmentInfoForShipping(String requestId, Shipment ps) {
         
-        logger.info("createShipmentInfoForShipping()------------------------------- START : ");
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"createShipmentInfoForShipping()------------------------------- START : ");
         
         ShipmentInfoForShipping shipmentInfo = new ShipmentInfoForShipping();
         //Shipment Id
-        Map<String, String> clientRefShipmentId = getShipmentId(ps.getShipmentId());
+        Map<String, String> clientRefShipmentId = getShipmentId(requestId, ps.getShipmentId());
         shipmentInfo.setClientRefShipmentId(clientRefShipmentId);
         //MarketplaceId
         try {
             shipmentInfo.setMarketplaceId(Long.parseLong(ps.getMarketplaceId()));
         } catch (NumberFormatException nfe) {
-            logger.error("NumberFormatException while parsing MarketplaceId.");
+            logger.error(requestId+SBConstant.LOG_SEPRATOR+"NumberFormatException while parsing MarketplaceId.");
         }
         //Warehouse ID
         shipmentInfo.setOriginWarehouseId(ps.getOriginWarehouseCode());
         //Prepare and Setup Package Info
-        PackageInfoForShipping packageDetails = getPackageDetails(ps);
+        PackageInfoForShipping packageDetails = getPackageDetails(requestId, ps);
         shipmentInfo.setPackageInfo(packageDetails);     
         //shipmentInfo.setOrderId(ps.getShipmentId());
-        logger.info("createShipmentInfoForShipping()------------------------------- END : ");
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"createShipmentInfoForShipping()------------------------------- END : ");
         return shipmentInfo;
     }
     
     //Prepare and Setup Package Info
-    private PackageInfoForShipping getPackageDetails(Shipment ps) {
-        logger.info("getPackageDetails()------------------------------- START : "+ ps.getShipmentId());
+    private PackageInfoForShipping getPackageDetails(String requestId, Shipment ps) {
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"getPackageDetails()------------------------------- START : "+ ps.getShipmentId());
         PackageInfoForShipping packageInfo = new PackageInfoForShipping();
         try {
             if (ps.getCurrencyCode() != null && ps.getBalanceDue() > 0) {
@@ -117,7 +118,7 @@ public class PreparePackageForShippingData {
                 packageInfo.setCodBalanceDue(currency);
             }
         } catch (Exception e) {
-            logger.error("Exception while providing CodBalanceDue");
+            logger.error(requestId+SBConstant.LOG_SEPRATOR+"Exception while providing CodBalanceDue");
         }
         
         Map<String, String> clientRefPackageId = new HashMap<String, String>();
@@ -144,14 +145,14 @@ public class PreparePackageForShippingData {
         weight.setWeightValue(ps.getWeightDiamensionValue());
         packageInfo.setWeight(weight);
         //Prepare and setup ItemInfo List
-        getItemInfoList(ps, packageInfo);
-        logger.info("getPackageDetails()------------------------------- END : "+ ps.getShipmentId());
+        getItemInfoList(requestId, ps, packageInfo);
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"getPackageDetails()------------------------------- END : "+ ps.getShipmentId());
         return packageInfo;
     }
     
     //ItemInfo List
-    private void getItemInfoList(Shipment ps, PackageInfoForShipping packageInfo) {
-        logger.info("getItemInfoList()------------------------------- START : "+ ps.getShipmentId());
+    private void getItemInfoList(String requestId, Shipment ps, PackageInfoForShipping packageInfo) {
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"getItemInfoList()------------------------------- START : "+ ps.getShipmentId());
         List<ItemInfoForShipping> itemsInfo = new ArrayList<ItemInfoForShipping>();//Collections.singletonList(itemInfo);
         for(ShipmentItem i : ps.getShipmentItem()){
             ItemInfoForShipping iifs = new ItemInfoForShipping();
@@ -165,21 +166,21 @@ public class PreparePackageForShippingData {
             itemsInfo.add(iifs);
         }
         packageInfo.setItemsInfo(itemsInfo);
-        logger.info("getItemInfoList()------------------------------- END : "+ ps.getShipmentId());
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"getItemInfoList()------------------------------- END : "+ ps.getShipmentId());
     }
 
     //Shipment Id
-    public Map<String, String> getShipmentId(String shipmentId) {
-        logger.info("getShipmentId()------------------------------- START : "+ shipmentId);
+    public Map<String, String> getShipmentId(String requestId, String shipmentId) {
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"getShipmentId()------------------------------- START : "+ shipmentId);
         Map<String, String> clientRefShipmentId = new HashMap<String, String>();
         clientRefShipmentId.put("SHIPMENT_ID", shipmentId);
-        logger.info("getShipmentId()------------------------------- END : "+ shipmentId);
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"getShipmentId()------------------------------- END : "+ shipmentId);
         return clientRefShipmentId;
     }
 
     //Label Info
-    private LabelSpecification createLabelSpecification(Shipment ps) {
-        logger.info("createLabelSpecification()------------------------------- START : "+ ps.getShipmentId());
+    private LabelSpecification createLabelSpecification(String requestId, Shipment ps) {
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"createLabelSpecification()------------------------------- START : "+ ps.getShipmentId());
         LabelSpecification labelSpecification = new LabelSpecification();
         labelSpecification.setClientRefBarCodeData(null); //As suggested by Vineela
         //labelSpecification.setClientRefBarCodeData(ps.getShipmentId());
@@ -198,7 +199,7 @@ public class PreparePackageForShippingData {
         labelDimensions.setLength(length);
         labelDimensions.setWidth(width);
         labelSpecification.setLabelDimensions(labelDimensions);
-        logger.info("createLabelSpecification()------------------------------- END : "+ ps.getShipmentId());
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"createLabelSpecification()------------------------------- END : "+ ps.getShipmentId());
         return labelSpecification;
     }
 

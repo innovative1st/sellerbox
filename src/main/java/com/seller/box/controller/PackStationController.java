@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seller.box.core.ServiceResponse;
@@ -28,6 +32,7 @@ import com.seller.box.entities.EdiPackStationInfo;
 import com.seller.box.entities.EdiPackStationPrinter;
 import com.seller.box.exception.NoDataFoundException;
 import com.seller.box.exception.SellerClientException;
+import com.seller.box.service.PackStationService;
 import com.seller.box.utils.SBConstant;
 import com.seller.box.utils.SBUtils;
 
@@ -46,6 +51,8 @@ public class PackStationController {
     EdiPackStationInfoDao ediPSInfoDao;
 	@Autowired
 	EdiPackStationPrinterDao ediPSPrinterDao;
+	@Autowired
+	PackStationService packStationService;
 	
 	@SuppressWarnings("unchecked")
 	@ApiOperation(value = "View pack station")
@@ -96,8 +103,9 @@ public class PackStationController {
 			}
 		}
 	}
-	
-	@SuppressWarnings({ "unchecked", "unused", "null" })
+
+
+	@SuppressWarnings("unchecked")
 	@ApiOperation(value = "Create new pack station")
 	@ApiImplicitParams(
 			{ 
@@ -215,7 +223,7 @@ public class PackStationController {
 	public ResponseEntity<ServiceResponse> addNewPrinterToPackStation(@RequestParam(name="guid") String guid, 
 																	  @RequestParam(name="token") String token, 
 																	  @RequestParam(name = "RequestBody") String body){
-		logger.info("addNewPackStation(...)-------START");
+		logger.info("addNewPrinterToPackStation(...)-------START");
 		ServiceResponse response = new ServiceResponse();
 		Map<String, Object> bodyMap = null;
 		String warehouseCode		= null;
@@ -277,7 +285,7 @@ public class PackStationController {
 			}
 			response.setRequestId(requestId);
 		} catch (IOException e) {
-			logger.error("IOException :: addNewPackStation(...)", e);
+			logger.error("IOException :: addNewPrinterToPackStation(...)", e);
 		}
 		if(SBUtils.isNull(warehouseCode) || SBUtils.isNull(packStationName) || SBUtils.isNull(packStationId) || SBUtils.isNull(printerName) || SBUtils.isNull(printerType)) {
 			StringBuffer args = new StringBuffer();
@@ -293,7 +301,7 @@ public class PackStationController {
 			if(SBUtils.isNull(printerType)) {
 				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_PS_PRINTER_TYPE);
 			}
-			logger.error("SellerClientException :: addNewPackStation(...)", "Following arguments "+args.toString()+" is mandarory to add new printer.");
+			logger.error("SellerClientException :: addNewPrinterToPackStation(...)", "Following arguments "+args.toString()+" is mandarory to add new printer.");
 			throw new SellerClientException("Following arguments "+args.toString()+" is mandarory to add new printer.");
 		} else {
 			EdiPackStationInfo psInfo = null;
@@ -347,7 +355,7 @@ public class PackStationController {
 							response.setStatus(SBConstant.TXN_STATUS_EXCEPTION);
 							response.setErrorDesc("Unable to add printer "+printerType+" for pack station "+ packStationName + " under warehouse " + warehouseCode+SBConstant.LOG_SEPRATOR+e.getMessage());
 							response.setResponseMessage("Unable to add printer "+printerType+" for pack station "+ packStationName + " under warehouse " + warehouseCode);
-							logger.error("Exception :: addNewPackStation(...)", e);
+							logger.error("Exception :: addNewPrinterToPackStation(...)", e);
 						}
 					} else {
 						response.setResponseCode(SBConstant.TXN_RESPONSE_CODE_DUPLICATE);
@@ -362,9 +370,71 @@ public class PackStationController {
 				response.setUniqueKey(null);
 				response.setResponseMessage("Unable to find PS name = " + packStationName + " or PS Id = "+ packStationId+" against warehouse = " + warehouseCode);
 			}
-			logger.info("addNewPackStation(...) : Response >>> "+response.toString());
-			logger.info("addNewPackStation(...)-------END");
+			logger.info("addNewPrinterToPackStation(...) : Response >>> "+response.toString());
+			logger.info("addNewPrinterToPackStation(...)-------END");
 			return new ResponseEntity<ServiceResponse>(response, HttpStatus.OK);
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@ApiOperation(value = "Download JNLP file")
+	@ApiImplicitParams(
+			{ 
+				@ApiImplicitParam(name = "RequestBody", dataType = "String", required = true, paramType = "query", value = "<table border=\"1\"><tr style=\"background: green !important;\"><td width=\"100\"><strong>Field Name </strong></td><td width=\"100\"><strong>Data Type </strong></td><td align=\"center\" width=\"100\"><strong>Mandatory </strong></td><td width=\"300\"><strong>Description </strong></td></tr><tr style=\"background: #ccc !important;\"><td>warehouseCode</td><td>Varchar(10)</td><td align=\"center\">Mandatory</td><td>eRetail Warehouse Code. API will validate warehouse code from WMS API configuration.</td></tr><tr style=\"background: #0d0 !important;\"><td>packStationName</td><td>Varchar(10)</td><td align=\"center\">Mandatory</td><td>Name of the pack station with respect to warehouse</td></tr><tr style=\"background: #ccc !important;\"><td>packStationIpaddress</td><td>Varchar(20)</td><td align=\"center\">Mandatory</td><td>Currect IP address of the pack station</td></tr><tr style=\"background: #0d0 !important;\"><td>packStationHostname</td><td>Varchar(20)</td><td align=\"center\">Optional</td><td>Name of the pack station hostname</td></tr><tr><td colspan=\"4\"><p><strong>Input JSON Format- <br/>{ <br/>&nbsp; &nbsp;\"warehouseCode\":\"XXXX\", <br/>&nbsp; &nbsp;\"packStationName\":\"xxxx\", <br/>&nbsp; &nbsp;\"packStationIpaddress\":\"xxx.xxx.xxxx.xxx\", <br/>&nbsp; &nbsp;\"packStationHostname\":\"XXXXXXXXXXXX\" <br/>}</strong></p></td></tr></table>"),
+				@ApiImplicitParam(name = "guid", dataType = "String", required = true, paramType = "query", value = "API Owner"),
+				@ApiImplicitParam(name = "token", dataType = "String", required = true, paramType = "query", value = "API Key")
+			})
+	@RequestMapping(value = "/downloadJnlpFile", method = {RequestMethod.GET, RequestMethod.POST}, consumes = {MediaType.ALL_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
+	public ResponseEntity<Map<String, String>> downloadJnlpFile(@RequestParam(name="guid") String guid, 
+															@RequestParam(name="token") String token, 
+															@RequestParam(name = "RequestBody") String body){
+		logger.info("downloadJnlpFile(...)-------START");
+		String jnlpString = null;
+		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+		//HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
+		String remoteAddress = request.getRemoteAddr();
+		System.out.println(remoteAddress);
+		Map<String, Object> bodyMap = null;
+		String warehouseCode		= null;
+		String psName				= null;
+		String requestId			= null;
+		try {
+			bodyMap = new ObjectMapper().readValue(body, HashMap.class);
+			if(bodyMap.containsKey(SBConstant.VAR_WAREHOUSE_CODE)) {
+				warehouseCode = (String) bodyMap.get(SBConstant.VAR_WAREHOUSE_CODE);
+			}
+			if(bodyMap.containsKey(SBConstant.VAR_PS_NAME)) {
+				psName = (String) bodyMap.get(SBConstant.VAR_PS_NAME);
+			}
+			if(bodyMap.containsKey(SBConstant.VAR_REQUEST_ID)) {
+				requestId = (String) bodyMap.get(SBConstant.VAR_REQUEST_ID);
+			} else {
+				requestId = UUID.randomUUID().toString();
+			}
+		} catch (IOException e) {
+			logger.error("IOException :: downloadJnlpFile(...)", e);
+		}
+		if(SBUtils.isNull(warehouseCode) || SBUtils.isNull(psName)) {
+			StringBuffer args = new StringBuffer();
+			if(SBUtils.isNull(warehouseCode)) {
+				args.append(SBConstant.VAR_WAREHOUSE_CODE);
+			}
+			if(SBUtils.isNull(psName)) {
+				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_PS_NAME);
+			}
+			logger.error(requestId+SBConstant.LOG_SEPRATOR+"SellerClientException :: downloadJnlpFile(...)", "Following arguments "+args.toString()+" is mandarory to register pack station.");
+			throw new SellerClientException("Following arguments "+args.toString()+" is mandarory to register pack station.");
+		} else {
+			jnlpString = packStationService.downloadJnlp(requestId, warehouseCode, psName, token);
+		}
+		
+	    Map<String, String> result = new HashMap<String, String>();
+	    if(jnlpString != null) {
+	    	result.put("JNLP", jnlpString);
+	    } else {
+	    	result.put("ERROR", "Unable to register packs station "+psName+", Please try again.");
+	    }
+		logger.info(requestId+SBConstant.LOG_SEPRATOR+"downloadJnlpFile(...)-------END");
+		return new ResponseEntity<Map<String, String>>(result, HttpStatus.OK);
 	}
 }

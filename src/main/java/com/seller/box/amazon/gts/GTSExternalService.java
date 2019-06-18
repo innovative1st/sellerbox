@@ -23,6 +23,7 @@ import com.seller.box.amazon.gts.api.GTSManifestPackagesByIds;
 import com.seller.box.amazon.gts.api.GTSPreparePackageForShipping;
 import com.seller.box.amazon.gts.api.GetShippingLabelForReprinting;
 import com.seller.box.form.Shipment;
+import com.seller.box.utils.SBConstant;
 import com.seller.box.utils.SBUtils;
 
 
@@ -32,24 +33,24 @@ public class GTSExternalService {
     /****************************************************
     * Calling PreparePackageForShipping API
     ****************************************************/
-    public PreparePackageForShippingResult getPreparePackageForShipping(Shipment ps){
-        logger.info("getPreparePackageForShipping(PackageForShipping ps) for EDI_ORDER_ID = "+ ps.getEdiOrderId()+" ------------ START");
+    public PreparePackageForShippingResult getPreparePackageForShipping(String requestId, Shipment ps){
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"getPreparePackageForShipping(PackageForShipping ps) for EDI_ORDER_ID = "+ ps.getEdiOrderId()+" ------------ START");
         PreparePackageForShippingResult result = null;
         for (int i = 0; i < retryCount; i++) {
             try {
-                logger.info("Shipment Id : " + ps.getShipmentId());
+                logger.info(requestId+SBConstant.LOG_SEPRATOR+"Shipment Id : " + ps.getShipmentId());
                 GTSPreparePackageForShipping gtsLabel = new GTSPreparePackageForShipping();
-                gtsLabel.buildLabelRequest(ps);
-                result = gtsLabel.callPreparePackageForShipping(ps);
+                gtsLabel.buildLabelRequest(requestId, ps);
+                result = gtsLabel.callPreparePackageForShipping(requestId, ps);
                 if(result != null){
-                    logger.info("PreparePackageForShippingResult >>>>>>>>>>> " + result.toString());
+                    logger.info(requestId+SBConstant.LOG_SEPRATOR+"PreparePackageForShippingResult >>>>>>>>>>> " + result.toString());
                     break;
                 }
             } catch (Exception e) {
-                logger.error("Exception Occured, getPreparePackageForShipping(PackageForShipping ps) for EDI_ORDER_ID = "+ ps.getEdiOrderId(), e);
+                logger.error(requestId+SBConstant.LOG_SEPRATOR+"Exception Occured, getPreparePackageForShipping(PackageForShipping ps) for EDI_ORDER_ID = "+ ps.getEdiOrderId(), e);
             }
         }
-        logger.info("getPreparePackageForShipping(PackageForShipping ps) for EDI_ORDER_ID = "+ ps.getEdiOrderId()+" ------------ END");
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"getPreparePackageForShipping(PackageForShipping ps) for EDI_ORDER_ID = "+ ps.getEdiOrderId()+" ------------ END");
         return result;
     }
     
