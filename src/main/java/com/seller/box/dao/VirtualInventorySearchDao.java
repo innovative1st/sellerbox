@@ -25,7 +25,7 @@ public interface VirtualInventorySearchDao extends JpaRepository<VirtualInventor
 	@Query(value=SBConstant.VI_SEARCH_QUERY + " WHERE IL.ETAILOR_ID = :etailorId",
 			countQuery=SBConstant.VI_COUNT_QUERY + " WHERE IL.ETAILOR_ID = :etailorId",
 			nativeQuery=true)
-	List<VirtualInventorySearch> findByEtailorId(Integer etailorId);
+	List<VirtualInventorySearch> findByEtailorId(int etailorId);
 
 	@Query(value=SBConstant.VI_SEARCH_QUERY + " WHERE IL.LOCATION_CODE = :warehouseCode",
 			countQuery=SBConstant.VI_COUNT_QUERY + " WHERE IL.LOCATION_CODE = :warehouseCode",

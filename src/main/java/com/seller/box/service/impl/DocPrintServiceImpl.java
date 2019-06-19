@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
+import com.seller.box.core.ManifestResponse;
 import com.seller.box.service.DocPrintService;
 import com.seller.box.utils.SBConstant;
 import com.seller.box.utils.SBUtils;
@@ -30,12 +31,13 @@ public class DocPrintServiceImpl implements DocPrintService{
     public static final String LINE_SEPERATOR  = "\r\n";
 
     @Override
-    public Properties printPackingSlip(String requestId, String ipAddress, String shipmentId, String filepath){
-        logger.info(requestId+SBConstant.LOG_SEPRATOR+"printPackingSlip(String requestId, String ipAddress, String shipmentId, String filepath) --------------- START");
-        Properties result = new Properties();
-        Socket echoSocket = null;
-        String hostName = ipAddress;
-        int portNumber = SBConstant.VAR_PS_LISTENER_PORT;
+    public Properties printPackingSlip(ManifestResponse response, String filepath){
+    	String logPrefix = response.getRequestId()+SBConstant.LOG_SEPRATOR;
+        logger.info(logPrefix+"printPackingSlip(String requestId, String ipAddress, String shipmentId, String filepath) --------------- START");
+        Properties result 	= new Properties();
+        Socket echoSocket 	= null;
+        String hostName 	= response.getPsIpAddess();
+        int portNumber  	= response.getPsListenPort();
         if(hostName != null){
             try {
                 echoSocket = new Socket(hostName, portNumber);
@@ -46,7 +48,7 @@ public class DocPrintServiceImpl implements DocPrintService{
                 //METHOD & PARAM
                 sbuf.append(PRINT_CALL_POST).append(" ").append(SBUtils.getPhoneUrl()).append("?");
                 sbuf.append("IDs=PS0001").append("&");
-                sbuf.append("shipment_id=").append(shipmentId).append("&");
+                sbuf.append("shipment_id=").append(response.getShipmentId()).append("&");
                 sbuf.append("accessToken=ADFM_PS0001").append("&");
                 sbuf.append("printFromStore=Y").append("&");
                 sbuf.append("purpose=printPDF").append("&");
@@ -91,27 +93,28 @@ public class DocPrintServiceImpl implements DocPrintService{
             } catch (UnknownHostException e) {
                 result.put(SBConstant.PRINT_PROPERY_STATUS, SBConstant.PRINT_STATUS_UNKNOWN_HOST); 
                 result.put(SBConstant.PRINT_PROPERY_MESSAGE, "UnknownHostException "+e.getMessage()); 
-                logger.error(requestId+SBConstant.LOG_SEPRATOR+"UnknownHostException Occured :: printPackingSlip(String requestId, String ipAddress, String shipmentId, String filepath)", e);
+                logger.error(logPrefix+SBConstant.LOG_SEPRATOR+"UnknownHostException Occured :: printPackingSlip(String requestId, String ipAddress, String shipmentId, String filepath)", e);
             } catch (IOException e) {
                 result.put(SBConstant.PRINT_PROPERY_STATUS, SBConstant.PRINT_STATUS_IO_EXCEPTION); 
                 result.put(SBConstant.PRINT_PROPERY_MESSAGE, "Couldn't get I/O for the connection to " + hostName +" - "+e.getMessage()); 
-                logger.error(requestId+SBConstant.LOG_SEPRATOR+"UnknownHostException Occured :: printPackingSlip(String requestId, String ipAddress, String shipmentId, String filepath)", e);
+                logger.error(logPrefix+SBConstant.LOG_SEPRATOR+"UnknownHostException Occured :: printPackingSlip(String requestId, String ipAddress, String shipmentId, String filepath)", e);
             } 
         } else {
             result.put(SBConstant.PRINT_PROPERY_STATUS, SBConstant.PRINT_STATUS_HOSTNAME_MISSING); 
             result.put(SBConstant.PRINT_PROPERY_MESSAGE, "Flex Print connection not established, hostname is missing."); 
         }  
-        logger.info(requestId+SBConstant.LOG_SEPRATOR+"printPackingSlip(String requestId, String ipAddress, String shipmentId, String filepath) --------------- END");
+        logger.info(logPrefix+SBConstant.LOG_SEPRATOR+"printPackingSlip(String requestId, String ipAddress, String shipmentId, String filepath) --------------- END");
         return result;
     }
     
     @Override
-    public Properties printShipLabel(String requestId, String ipAddress, String shipmentId, String filepath){
-        logger.info(requestId+SBConstant.LOG_SEPRATOR+"printShipLabel(String requestId, String ipAddress, String shipmentId, String filepath) --------------- START");
-        Properties result = new Properties();
-        Socket echoSocket = null;
-        String hostName = ipAddress;
-    	int portNumber = SBConstant.VAR_PS_LISTENER_PORT;
+    public Properties printShipLabel(ManifestResponse response, String filepath){
+    	String logPrefix = response.getRequestId()+SBConstant.LOG_SEPRATOR;
+        logger.info(logPrefix+SBConstant.LOG_SEPRATOR+"printShipLabel(String requestId, String ipAddress, String shipmentId, String filepath) --------------- START");
+        Properties result 	= new Properties();
+        Socket echoSocket 	= null;
+        String hostName 	= response.getPsIpAddess();
+        int portNumber  	= response.getPsListenPort();
         if(hostName != null){
             try {
                 echoSocket = new Socket(hostName, portNumber);
@@ -122,7 +125,7 @@ public class DocPrintServiceImpl implements DocPrintService{
                 //METHOD & PARAM
                 sbuf.append(PRINT_CALL_POST).append(" ").append(SBUtils.getPhoneUrl()).append("?");
                 sbuf.append("IDs=PS0001").append("&");
-                sbuf.append("shipment_id=").append(shipmentId).append("&");
+                sbuf.append("shipment_id=").append(response.getShipmentId()).append("&");
                 sbuf.append("accessToken=ADFM_PS0001").append("&");
                 sbuf.append("printFromStore=Y").append("&");
                 sbuf.append("purpose=printZPL").append("&");
@@ -158,11 +161,11 @@ public class DocPrintServiceImpl implements DocPrintService{
             } catch (UnknownHostException e) {
                 result.put(SBConstant.PRINT_PROPERY_STATUS, SBConstant.PRINT_STATUS_UNKNOWN_HOST); 
                 result.put(SBConstant.PRINT_PROPERY_MESSAGE, "UnknownHostException "+e.getMessage()); 
-                logger.error(requestId+SBConstant.LOG_SEPRATOR+"UnknownHostException Occured :: printShipLabel(String requestId, String ipAddress, String shipmentId, String filepath)", e);
+                logger.error(logPrefix+SBConstant.LOG_SEPRATOR+"UnknownHostException Occured :: printShipLabel(String requestId, String ipAddress, String shipmentId, String filepath)", e);
             } catch (IOException e) {
                 result.put(SBConstant.PRINT_PROPERY_STATUS, SBConstant.PRINT_STATUS_IO_EXCEPTION); 
                 result.put(SBConstant.PRINT_PROPERY_MESSAGE, "Couldn't get I/O for the connection to " + hostName +" - "+e.getMessage()); 
-                logger.error(requestId+SBConstant.LOG_SEPRATOR+"IOException Occured :: printShipLabel(String requestId, String ipAddress, String shipmentId, String filepath)", e);
+                logger.error(logPrefix+SBConstant.LOG_SEPRATOR+"IOException Occured :: printShipLabel(String requestId, String ipAddress, String shipmentId, String filepath)", e);
             } 
         } else {
             result.put(SBConstant.PRINT_PROPERY_STATUS, SBConstant.PRINT_STATUS_HOSTNAME_MISSING); 
@@ -170,17 +173,18 @@ public class DocPrintServiceImpl implements DocPrintService{
         }
         logger.info("Status  : "+result.getProperty(SBConstant.PRINT_PROPERY_STATUS));
         logger.info("Message : "+result.getProperty(SBConstant.PRINT_PROPERY_MESSAGE));
-        logger.info(requestId+SBConstant.LOG_SEPRATOR+"printShipLabel(String requestId, String ipAddress, String shipmentId, String filepath)--------------- END");
+        logger.info(logPrefix+SBConstant.LOG_SEPRATOR+"printShipLabel(String requestId, String ipAddress, String shipmentId, String filepath)--------------- END");
         return result;
     }
     
     @Override
-    public Properties printGiftNoteCard(String requestId, String ipAddress, String shipmentId, List<String> giftNoteCards){
-        logger.info(requestId+SBConstant.LOG_SEPRATOR+"printGiftNoteCard(String requestId, String shipmentId, List<String> giftNoteCards)--------------- START");
-        Properties result = new Properties();
-        Socket echoSocket = null;
-        String hostName = ipAddress;
-    	int portNumber = SBConstant.VAR_PS_LISTENER_PORT;
+    public Properties printGiftNoteCard(ManifestResponse response, List<String> giftNoteCards){
+    	String logPrefix = response.getRequestId()+SBConstant.LOG_SEPRATOR;
+    	logger.info(logPrefix+SBConstant.LOG_SEPRATOR+"printGiftNoteCard(String requestId, String shipmentId, List<String> giftNoteCards)--------------- START");
+        Properties result 	= new Properties();
+        Socket echoSocket 	= null;
+        String hostName 	= response.getPsIpAddess();
+        int portNumber  	= response.getPsListenPort();
         if(hostName != null){
             try {
                 for(String giftMessage : giftNoteCards){
@@ -192,7 +196,7 @@ public class DocPrintServiceImpl implements DocPrintService{
                     //METHOD & PARAM
                     sbuf.append(PRINT_CALL_POST).append(" ").append(SBUtils.getPhoneUrl()).append("?");
                     sbuf.append("IDs=PS0001").append("&");
-                    sbuf.append("shipment_id=").append(shipmentId).append("&");
+                    sbuf.append("shipment_id=").append(response.getShipmentId()).append("&");
                     sbuf.append("accessToken=ADFM_PS0001").append("&");
                     sbuf.append("printFromStore=Y").append("&");
                     sbuf.append("purpose=printZPL").append("&");
@@ -229,17 +233,17 @@ public class DocPrintServiceImpl implements DocPrintService{
             } catch (UnknownHostException e) {
                 result.put(SBConstant.PRINT_PROPERY_STATUS, SBConstant.PRINT_STATUS_UNKNOWN_HOST); 
                 result.put(SBConstant.PRINT_PROPERY_MESSAGE, "UnknownHostException "+e.getMessage()); 
-                logger.error(requestId+SBConstant.LOG_SEPRATOR+"UnknownHostException Occured :: printGiftNoteCard(String requestId, String ipAddress, String shipmentId, List<String> giftNoteCards)", e);
+                logger.error(logPrefix+SBConstant.LOG_SEPRATOR+"UnknownHostException Occured :: printGiftNoteCard(String requestId, String ipAddress, String shipmentId, List<String> giftNoteCards)", e);
             } catch (IOException e) {
                 result.put(SBConstant.PRINT_PROPERY_STATUS, SBConstant.PRINT_STATUS_IO_EXCEPTION); 
                 result.put(SBConstant.PRINT_PROPERY_MESSAGE, "Couldn't get I/O for the connection to " + hostName +" - "+e.getMessage()); 
-                logger.error(requestId+SBConstant.LOG_SEPRATOR+"IOException Occured :: printGiftNoteCard(String requestId, String ipAddress, String shipmentId, List<String> giftNoteCards)", e);
+                logger.error(logPrefix+SBConstant.LOG_SEPRATOR+"IOException Occured :: printGiftNoteCard(String requestId, String ipAddress, String shipmentId, List<String> giftNoteCards)", e);
             } 
         } else {
             result.put(SBConstant.PRINT_PROPERY_STATUS, SBConstant.PRINT_STATUS_HOSTNAME_MISSING); 
             result.put(SBConstant.PRINT_PROPERY_MESSAGE, "Flex Print connection not established, hostname is missing."); 
         }
-        logger.info(requestId+SBConstant.LOG_SEPRATOR+"printGiftNoteCard(String requestId, String ipAddress, String shipmentId, List<String> giftNoteCards)--------------- END");
+        logger.info(logPrefix+SBConstant.LOG_SEPRATOR+"printGiftNoteCard(String requestId, String ipAddress, String shipmentId, List<String> giftNoteCards)--------------- END");
         return result;
     }
 }

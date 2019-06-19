@@ -5,6 +5,8 @@ import java.util.Date;
 
 public class ManifestResponse implements Serializable{
 	private static final long serialVersionUID = 1L;
+	private Long ediOrderId;
+	private String shipmentId;
 	private String requestId;
 	private String manifestStatus;
 	private String manifestErrorMessage;
@@ -21,8 +23,22 @@ public class ManifestResponse implements Serializable{
 	private String shiplabelPrintStatus;
 	private String invoiceFilepath;
 	private String invoicePrintStatus;
-	private boolean isGift;
 	private String giftPrintStatus;
+	private String psName;
+	private String psIpAddess;
+	private int psListenPort;
+	public Long getEdiOrderId() {
+		return ediOrderId;
+	}
+	public void setEdiOrderId(Long ediOrderId) {
+		this.ediOrderId = ediOrderId;
+	}
+	public String getShipmentId() {
+		return shipmentId;
+	}
+	public void setShipmentId(String shipmentId) {
+		this.shipmentId = shipmentId;
+	}
 	public String getRequestId() {
 		return requestId;
 	}
@@ -119,27 +135,42 @@ public class ManifestResponse implements Serializable{
 	public void setInvoicePrintStatus(String invoicePrintStatus) {
 		this.invoicePrintStatus = invoicePrintStatus;
 	}
-	public boolean isGift() {
-		return isGift;
-	}
-	public void setGift(boolean isGift) {
-		this.isGift = isGift;
-	}
 	public String getGiftPrintStatus() {
 		return giftPrintStatus;
 	}
 	public void setGiftPrintStatus(String giftPrintStatus) {
 		this.giftPrintStatus = giftPrintStatus;
 	}
+	public String getPsName() {
+		return psName;
+	}
+	public void setPsName(String psName) {
+		this.psName = psName;
+	}
+	public String getPsIpAddess() {
+		return psIpAddess;
+	}
+	public void setPsIpAddess(String psIpAddess) {
+		this.psIpAddess = psIpAddess;
+	}
+	public int getPsListenPort() {
+		return psListenPort;
+	}
+	public void setPsListenPort(int psListenPort) {
+		this.psListenPort = psListenPort;
+	}
 	@Override
 	public String toString() {
-		return "ManifestResponse [requestId=" + requestId + ", manifestStatus=" + manifestStatus
-				+ ", manifestErrorMessage=" + manifestErrorMessage + ", manifestExceptionMessage="
-				+ manifestExceptionMessage + ", carrierName=" + carrierName + ", barcode=" + barcode + ", trackingId="
-				+ trackingId + ", pickupDate=" + pickupDate + ", manifestBy=" + manifestBy + ", manifestDate="
-				+ manifestDate + ", canManifest=" + canManifest + ", manifestId=" + manifestId + ", shiplabelFilepath="
-				+ shiplabelFilepath + ", shiplabelPrintStatus=" + shiplabelPrintStatus + ", invoiceFilepath="
-				+ invoiceFilepath + ", invoicePrintStatus=" + invoicePrintStatus + ", isGift=" + isGift
-				+ ", giftPrintStatus=" + giftPrintStatus + "]";
-	}	
+		return "ManifestResponse [ediOrderId=" + ediOrderId + ", shipmentId=" + shipmentId + ", requestId=" + requestId
+				+ ", manifestStatus=" + manifestStatus + ", manifestErrorMessage=" + manifestErrorMessage
+				+ ", manifestExceptionMessage=" + manifestExceptionMessage + ", carrierName=" + carrierName
+				+ ", barcode=" + barcode + ", trackingId=" + trackingId + ", pickupDate=" + pickupDate + ", manifestBy="
+				+ manifestBy + ", manifestDate=" + manifestDate + ", canManifest=" + canManifest + ", manifestId="
+				+ manifestId + ", shiplabelFilepath=" + shiplabelFilepath + ", shiplabelPrintStatus="
+				+ shiplabelPrintStatus + ", invoiceFilepath=" + invoiceFilepath + ", invoicePrintStatus="
+				+ invoicePrintStatus + ", giftPrintStatus=" + giftPrintStatus + ", psName=" + psName + ", psIpAddess="
+				+ psIpAddess + ", psListenPort=" + psListenPort + ", getClass()=" + getClass() + ", hashCode()="
+				+ hashCode() + ", toString()=" + super.toString() + "]";
+	}
+	
 }

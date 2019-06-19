@@ -25,6 +25,7 @@ import com.seller.box.dao.EdiConfigDao;
 import com.seller.box.dao.EdiShipmentAsnDao;
 import com.seller.box.dao.EdiShipmentDao;
 import com.seller.box.dao.EdiShipmentOfrDao;
+import com.seller.box.dao.OrderDao;
 import com.seller.box.dao.ProductMeasurementDao;
 import com.seller.box.dao.ProductSearchDao;
 import com.seller.box.entities.EdiBoxType;
@@ -66,7 +67,8 @@ public class OrderServiceImpl implements OrderService {
 	ProductSearchDao productSearchDao;
 	@Autowired
 	EdiShipmentDao shipmentDao;
-	
+	@Autowired
+	OrderDao orderDao;
 	@Override
 	@Async
 	public void createOrderAsync(String requestId, OF of, String orderType, int etailorId, Long ediOrderId, String user) {
@@ -738,8 +740,9 @@ public class OrderServiceImpl implements OrderService {
 				shipment.setLoadId(sh.getLoadId());
 				shipment.setTrailorId(sh.getTrailorId());
 				shipment.setTrackingId(sh.getTrackingId());
+				shipment.setCanManifest(sh.getCanManifest());
 				shipment.setCarrierName(sh.getCarrierName());
-				//shipment.setInvoiceFilepath(orderDao.getInvoiceFilepath(shipmentHdr.getShipmentId()));
+				shipment.setInvoiceFilepath(orderDao.getInvoiceFilepath(sh.getShipmentId()));
 				shipment.setShiplabelFilepath(sh.getShipLabelFilepath());
 				shipment.setManifestId(sh.getManifestId());
 				shipment.setManifestErrorMessage(null);

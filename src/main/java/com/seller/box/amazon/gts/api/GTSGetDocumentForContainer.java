@@ -8,14 +8,14 @@ import com.amazonaws.services.gtsexternalsecurity.model.GetDocumentForContainerR
 import com.amazonaws.services.gtsexternalsecurity.model.InvalidRequestException;
 import com.amazonaws.services.gtsexternalsecurity.model.RecoverableException;
 import com.amazonaws.services.gtsexternalsecurity.model.UnrecoverableException;
-import com.seller.box.amazon.gts.GTSExternalService;
+import com.seller.box.amazon.gts.GTSExternalServiceImpl;
 import com.seller.box.amazon.gts.data.GetDocumentForContainerData;
 import com.seller.box.form.Shipment;
 
 
 
 public class GTSGetDocumentForContainer extends GTSService {
-	private static final Logger logger = LogManager.getLogger(GTSExternalService.class);
+	private static final Logger logger = LogManager.getLogger(GTSExternalServiceImpl.class);
 	private GetDocumentForContainerRequest request;
         
 	public void buildGetDocumentForContainerReq(Shipment ps){

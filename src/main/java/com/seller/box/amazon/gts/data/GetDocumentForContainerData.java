@@ -9,12 +9,12 @@ import org.apache.logging.log4j.Logger;
 import com.amazonaws.services.gtsexternalsecurity.model.ContainerDocumentType;
 import com.amazonaws.services.gtsexternalsecurity.model.DocumentFormat;
 import com.amazonaws.services.gtsexternalsecurity.model.GetDocumentForContainerRequest;
-import com.seller.box.amazon.gts.GTSExternalService;
+import com.seller.box.amazon.gts.GTSExternalServiceImpl;
 import com.seller.box.form.Shipment;
 
 
 public class GetDocumentForContainerData {
-	private static final Logger logger = LogManager.getLogger(GTSExternalService.class);   
+	private static final Logger logger = LogManager.getLogger(GTSExternalServiceImpl.class);   
     public GetDocumentForContainerData() {
         super();
     }

@@ -9,25 +9,26 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.gtsexternalsecurity.model.GetPrintableManifestsForTrailerRequest;
 import com.amazonaws.services.gtsexternalsecurity.model.GetPrintableManifestsForTrailerResult;
 import com.seller.box.form.Shipment;
+import com.seller.box.utils.SBConstant;
 
 
 public class GTSGetPrintableManifestForTrailer extends GTSService {
 	private static final Logger logger = LogManager.getLogger(GTSGetPrintableManifestForTrailer.class);
     private GetPrintableManifestsForTrailerRequest request;
     
-    public void buildGetPrintableManifestRequest(Shipment ps) {
-        logger.info("buildGetPrintableManifestRequest(Shipment ps)---- START");
-        logger.info("Shipment Id : " + ps.getShipmentId());
+    public void buildGetPrintableManifestRequest(String requestId, Shipment sh) {
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"buildGetPrintableManifestRequest(Shipment sh)---- START");
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"Shipment Id : " + sh.getShipmentId());
         try {
             this.request = new GetPrintableManifestsForTrailerRequest();
-            request.setTrailerId(ps.getTrailorId());
-            request.setLoadId(ps.getLoadId());
-            request.setWarehouseId(ps.getOperatingWarehouseCode());
+            request.setTrailerId(sh.getTrailorId());
+            request.setLoadId(sh.getLoadId());
+            request.setWarehouseId(sh.getOperatingWarehouseCode());
         } catch (Exception e) {
-            logger.error("General Exception Occured, buildGetPrintableManifestRequest(Shipment ps)", e);
+            logger.error(requestId+SBConstant.LOG_SEPRATOR+"General Exception Occured, buildGetPrintableManifestRequest(Shipment sh)", e);
         }
-        logger.info("GetPrintable Request>>>" + request.toString());
-        logger.info("buildGetPrintableManifestRequest(Shipment ps)---- END");
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"GetPrintable Request>>>" + request.toString());
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"buildGetPrintableManifestRequest(Shipment sh)---- END");
     }
     public GetPrintableManifestsForTrailerResult callgetPrintableManifestForTrailer() {
         GetPrintableManifestsForTrailerResult result = null;

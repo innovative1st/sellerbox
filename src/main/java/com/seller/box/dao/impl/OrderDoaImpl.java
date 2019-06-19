@@ -382,7 +382,8 @@ public class OrderDoaImpl implements OrderDao {
 	}
 
     private String getInvoiceFilepathFromSource(String shipmentId) {
-        String invFilepath = null;
+        String invFilepath 		= null;
+        String absInvFilepath 	= null;
         try {
             invFilepath = SBUtils.getPropertyValue("seller.edi.invoice.path");
             if (!invFilepath.endsWith("\\")) {
@@ -405,7 +406,11 @@ public class OrderDoaImpl implements OrderDao {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+        	if(SBUtils.isNotNull(invFilepath)) {
+        		absInvFilepath = invFilepath;
+        	}
         }
-        return invFilepath;
+        return absInvFilepath;
     }
 }

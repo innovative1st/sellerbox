@@ -11,9 +11,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.xml.bind.DatatypeConverter;
+//
+//import org.apache.logging.log4j.LogManager;
+//import org.apache.logging.log4j.Logger;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -28,30 +30,31 @@ import com.seller.box.utils.SBUtils;
 
 
 public class GTSPreparePackageForShipping extends GTSService {
-	private static final Logger logger = LogManager.getLogger(GTSPreparePackageForShipping.class);
-    private PreparePackageForShippingRequest request;
+	//private static final Logger logger = LogManager.getLogger(GTSPreparePackageForShipping.class);
+	private static final Logger logger = Logger.getLogger(GTSPreparePackageForShipping.class);
+	private PreparePackageForShippingRequest request;
 
-    public void buildLabelRequest(String requestId, Shipment ps) {
-        logger.info(requestId+SBConstant.LOG_SEPRATOR+"buildLabelRequest(PackageForShipping ps) for EDI_ORDER_ID = "+ ps.getEdiOrderId()+"/"+ps.getShipmentId()+" ------------ START");
-        request = PreparePackageForShippingData.buildPPFSRequest(requestId, ps);
+    public void buildLabelRequest(String requestId, Shipment sh) {
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"buildLabelRequest(PackageForShipping ps) for EDI_ORDER_ID = "+ sh.getEdiOrderId()+"/"+sh.getShipmentId()+" ------------ START");
+        request = PreparePackageForShippingData.buildPPFSRequest(requestId, sh);
         logger.info(requestId+SBConstant.LOG_SEPRATOR+"RequestObjectForPPFSE>>>" + request.toString());
-        logger.info(requestId+SBConstant.LOG_SEPRATOR+"buildLabelRequest(PackageForShipping ps) for EDI_ORDER_ID = "+ ps.getEdiOrderId()+"/"+ps.getShipmentId()+" ------------ END");
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"buildLabelRequest(PackageForShipping ps) for EDI_ORDER_ID = "+ sh.getEdiOrderId()+"/"+sh.getShipmentId()+" ------------ END");
     }
     
-    public PreparePackageForShippingResult callPreparePackageForShipping(String requestId, Shipment ps) {
-        logger.info(requestId+SBConstant.LOG_SEPRATOR+"callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+") ------------ START");
+    public PreparePackageForShippingResult callPreparePackageForShipping(String requestId, Shipment sh) {
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"callPreparePackageForShipping(EdiOrderId "+sh.getEdiOrderId()+") ------------ START");
         PreparePackageForShippingResult result = null;
         try {
             result = gts.preparePackageForShipping(this.request);
             if(result != null) {
                 logger.info(requestId+SBConstant.LOG_SEPRATOR+"PPFSEResponse>>>" + result.toString());
-                String shiplabelFilepath = printLabelData(result, ps.getShipmentId());
+                String shiplabelFilepath = printLabelData(result, sh.getShipmentId());
                 ShipmentIdentifiers.setAmazonBarcode(result.getAmazonBarcode());
-                ps.setShiplabelFilepath(shiplabelFilepath);
-                ps.setBarcode(result.getAmazonBarcode());
-                ps.setTrackingId(result.getTrackingId());
-                ps.setReadyToPickUpTimeUTC(result.getShippingInfo().getPickUpDateUTC());
-                ps.setCarrierName(result.getShippingInfo().getCarrierName());
+                sh.setShiplabelFilepath(shiplabelFilepath);
+                sh.setBarcode(result.getAmazonBarcode());
+                sh.setTrackingId(result.getTrackingId());
+                sh.setReadyToPickUpTimeUTC(result.getShippingInfo().getPickUpDateUTC());
+                sh.setCarrierName(result.getShippingInfo().getCarrierName());
             }
         } catch (AmazonServiceException ase) {
             System.out.println(ase.getErrorCode());
@@ -60,18 +63,18 @@ public class GTSPreparePackageForShipping extends GTSService {
             System.out.println(ase.getMessage());
             String[] err = ase.getMessage().split(":");
             String errm = err[err.length - 1].trim();
-            ps.setManifestErrorMessage(errm);
-            logger.error(requestId+SBConstant.LOG_SEPRATOR+"AmazonServiceException Occured, callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+")", ase);
+            sh.setManifestErrorMessage(errm);
+            logger.error(requestId+SBConstant.LOG_SEPRATOR+"AmazonServiceException Occured, callPreparePackageForShipping(EdiOrderId "+sh.getEdiOrderId()+")", ase);
         } catch (AmazonClientException ace) {
             System.out.println(ace.getMessage());
             String[] err = ace.getMessage().split(":");
             String errm = err[err.length - 1].trim();
-            ps.setManifestErrorMessage(errm);
-            logger.error(requestId+SBConstant.LOG_SEPRATOR+"AmazonClientException Occured, callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+")", ace);
+            sh.setManifestErrorMessage(errm);
+            logger.error(requestId+SBConstant.LOG_SEPRATOR+"AmazonClientException Occured, callPreparePackageForShipping(EdiOrderId "+sh.getEdiOrderId()+")", ace);
         } catch (Exception e) {
-            logger.error(requestId+SBConstant.LOG_SEPRATOR+"General Exception Occured, callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+")", e);
+            logger.error(requestId+SBConstant.LOG_SEPRATOR+"General Exception Occured, callPreparePackageForShipping(EdiOrderId "+sh.getEdiOrderId()+")", e);
         }
-        logger.info(requestId+SBConstant.LOG_SEPRATOR+"callPreparePackageForShipping(EdiOrderId "+ps.getEdiOrderId()+") ------------ END");
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"callPreparePackageForShipping(EdiOrderId "+sh.getEdiOrderId()+") ------------ END");
         return result;
     }
 

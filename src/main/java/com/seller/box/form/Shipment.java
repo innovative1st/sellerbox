@@ -36,6 +36,7 @@ public class Shipment implements Serializable{
     private String loadId;
     private String trailorId;
     private String trackingId;
+    private String canManifest;
     private String carrierName;
     private String invoiceFilepath;												//absolute file-path of invoice copy
     private String shiplabelFilepath;											//absolute file-path of ship-label copy
@@ -234,6 +235,12 @@ public class Shipment implements Serializable{
 	public void setTrackingId(String trackingId) {
 		this.trackingId = trackingId;
 	}
+	public String getCanManifest() {
+		return canManifest;
+	}
+	public void setCanManifest(String canManifest) {
+		this.canManifest = canManifest;
+	}
 	public String getCarrierName() {
 		return carrierName;
 	}
@@ -342,123 +349,63 @@ public class Shipment implements Serializable{
 	public void setIsPaperDunnage(int isPaperDunnage) {
 		this.isPaperDunnage = isPaperDunnage;
 	}
-	/**
-	 * @return the shipMethod
-	 */
 	public String getShipMethod() {
 		return shipMethod;
 	}
-	/**
-	 * @param shipMethod the shipMethod to set
-	 */
 	public void setShipMethod(String shipMethod) {
 		this.shipMethod = shipMethod;
 	}
-	/**
-	 * @return the boxType
-	 */
 	public String getBoxType() {
 		return boxType;
 	}
-	/**
-	 * @param boxType the boxType to set
-	 */
 	public void setBoxType(String boxType) {
 		this.boxType = boxType;
 	}
-	/**
-	 * @return the packageLengthValue
-	 */
 	public double getPackageLengthValue() {
 		return packageLengthValue;
 	}
-	/**
-	 * @param packageLengthValue the packageLengthValue to set
-	 */
 	public void setPackageLengthValue(double packageLengthValue) {
 		this.packageLengthValue = packageLengthValue;
 	}
-	/**
-	 * @return the packageLengthUnit
-	 */
 	public String getPackageLengthUnit() {
 		return packageLengthUnit;
 	}
-	/**
-	 * @param packageLengthUnit the packageLengthUnit to set
-	 */
 	public void setPackageLengthUnit(String packageLengthUnit) {
 		this.packageLengthUnit = packageLengthUnit;
 	}
-	/**
-	 * @return the packageWidthValue
-	 */
 	public double getPackageWidthValue() {
 		return packageWidthValue;
 	}
-	/**
-	 * @param packageWidthValue the packageWidthValue to set
-	 */
 	public void setPackageWidthValue(double packageWidthValue) {
 		this.packageWidthValue = packageWidthValue;
 	}
-	/**
-	 * @return the packageWidthUnit
-	 */
 	public String getPackageWidthUnit() {
 		return packageWidthUnit;
 	}
-	/**
-	 * @param packageWidthUnit the packageWidthUnit to set
-	 */
 	public void setPackageWidthUnit(String packageWidthUnit) {
 		this.packageWidthUnit = packageWidthUnit;
 	}
-	/**
-	 * @return the packageHeightValue
-	 */
 	public double getPackageHeightValue() {
 		return packageHeightValue;
 	}
-	/**
-	 * @param packageHeightValue the packageHeightValue to set
-	 */
 	public void setPackageHeightValue(double packageHeightValue) {
 		this.packageHeightValue = packageHeightValue;
 	}
-	/**
-	 * @return the packageHeightUnit
-	 */
 	public String getPackageHeightUnit() {
 		return packageHeightUnit;
 	}
-	/**
-	 * @param packageHeightUnit the packageHeightUnit to set
-	 */
 	public void setPackageHeightUnit(String packageHeightUnit) {
 		this.packageHeightUnit = packageHeightUnit;
 	}
-	/**
-	 * @return the packageWeightValue
-	 */
 	public double getPackageWeightValue() {
 		return packageWeightValue;
 	}
-	/**
-	 * @param packageWeightValue the packageWeightValue to set
-	 */
 	public void setPackageWeightValue(double packageWeightValue) {
 		this.packageWeightValue = packageWeightValue;
 	}
-	/**
-	 * @return the packageWeightUnit
-	 */
 	public String getPackageWeightUnit() {
 		return packageWeightUnit;
 	}
-	/**
-	 * @param packageWeightUnit the packageWeightUnit to set
-	 */
 	public void setPackageWeightUnit(String packageWeightUnit) {
 		this.packageWeightUnit = packageWeightUnit;
 	}

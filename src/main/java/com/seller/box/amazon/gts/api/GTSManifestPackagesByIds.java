@@ -10,14 +10,15 @@ import com.amazonaws.services.gtsexternalsecurity.model.ManifestPackagesByIdsReq
 import com.amazonaws.services.gtsexternalsecurity.model.ManifestPackagesByIdsResult;
 import com.seller.box.amazon.gts.data.ManifestPackageByIdsData;
 import com.seller.box.form.Shipment;
+import com.seller.box.utils.SBConstant;
 
 
 public class GTSManifestPackagesByIds extends GTSService {
 	private static final Logger logger = LogManager.getLogger(GTSManifestPackagesByIds.class);
     private ManifestPackagesByIdsRequest request;
-    public void buildManifestPackageByIdsReq(Shipment ps) {
-        this.request = ManifestPackageByIdsData.buildManifestPackagesByIDRequest(ps);
-        logger.info("ManifestPackagesByIds Request>>>" + request.toString());
+    public void buildManifestPackageByIdsReq(String requestId, Shipment ps) {
+        this.request = ManifestPackageByIdsData.buildManifestPackagesByIDRequest(requestId, ps);
+        logger.info(requestId+SBConstant.LOG_SEPRATOR+"ManifestPackagesByIds Request>>>" + request.toString());
     }
 
     public ManifestPackagesByIdsResult callmanifestPackageByIds() {
