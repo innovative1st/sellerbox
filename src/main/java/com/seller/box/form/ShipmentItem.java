@@ -4,28 +4,28 @@ import java.io.Serializable;
 
 public class ShipmentItem implements Serializable{
 	private static final long serialVersionUID = 1L;
-    private Long itemSeq;
+    private int itemSeq;
     private String skuCode;
     private Long ean;
-    private String asin;
+    private String itemId;
     private String fnsku;
-    private String title;
+    private String productName;
     private int quantity;
     private int quantityPacked;
-    private String image;
+    private String thumbnailUrl;
     private String customerOrderItemID;
     private String customerOrderItemDetailID;
     private String bayNo;
     private String rackNo;
     private int qntFromInv;
     private int qntFromProd;
-    private boolean isGift;
-    private boolean isGiftWrap;
+    private int isGift;
+    private int isGiftWrap;
     private String giftLabelContent;
-	public Long getItemSeq() {
+	public int getItemSeq() {
 		return itemSeq;
 	}
-	public void setItemSeq(Long itemSeq) {
+	public void setItemSeq(int itemSeq) {
 		this.itemSeq = itemSeq;
 	}
 	public String getSkuCode() {
@@ -40,11 +40,11 @@ public class ShipmentItem implements Serializable{
 	public void setEan(Long ean) {
 		this.ean = ean;
 	}
-	public String getAsin() {
-		return asin;
+	public String getItemId() {
+		return itemId;
 	}
-	public void setAsin(String asin) {
-		this.asin = asin;
+	public void setItemId(String itemId) {
+		this.itemId = itemId;
 	}
 	public String getFnsku() {
 		return fnsku;
@@ -52,11 +52,11 @@ public class ShipmentItem implements Serializable{
 	public void setFnsku(String fnsku) {
 		this.fnsku = fnsku;
 	}
-	public String getTitle() {
-		return title;
+	public String getProductName() {
+		return productName;
 	}
-	public void setTitle(String title) {
-		this.title = title;
+	public void setProductName(String productName) {
+		this.productName = productName;
 	}
 	public int getQuantity() {
 		return quantity;
@@ -70,11 +70,11 @@ public class ShipmentItem implements Serializable{
 	public void setQuantityPacked(int quantityPacked) {
 		this.quantityPacked = quantityPacked;
 	}
-	public String getImage() {
-		return image;
+	public String getThumbnailUrl() {
+		return thumbnailUrl;
 	}
-	public void setImage(String image) {
-		this.image = image;
+	public void setThumbnailUrl(String thumbnailUrl) {
+		this.thumbnailUrl = thumbnailUrl;
 	}
 	public String getCustomerOrderItemID() {
 		return customerOrderItemID;
@@ -112,16 +112,16 @@ public class ShipmentItem implements Serializable{
 	public void setQntFromProd(int qntFromProd) {
 		this.qntFromProd = qntFromProd;
 	}
-	public boolean isGift() {
+	public int getIsGift() {
 		return isGift;
 	}
-	public void setGift(boolean isGift) {
+	public void setIsGift(int isGift) {
 		this.isGift = isGift;
 	}
-	public boolean isGiftWrap() {
+	public int getIsGiftWrap() {
 		return isGiftWrap;
 	}
-	public void setGiftWrap(boolean isGiftWrap) {
+	public void setIsGiftWrap(int isGiftWrap) {
 		this.isGiftWrap = isGiftWrap;
 	}
 	public String getGiftLabelContent() {

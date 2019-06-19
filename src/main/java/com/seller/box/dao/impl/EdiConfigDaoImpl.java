@@ -62,20 +62,20 @@ public class EdiConfigDaoImpl implements EdiConfigDao {
 	}
 	
 	@Override
-	public String getMarketplaceId(@Param("locationCode") String locationCode) {
-		String sql = "SELECT MARKETPLACE_ID FROM INVENTORY.INVENTORY_LOCATION WHERE LOCATION_CODE = '"+locationCode+"'";
+	public String getMarketplaceId(@Param("warehouseCode") String warehouseCode) {
+		String sql = "SELECT MARKETPLACE_ID FROM INVENTORY.INVENTORY_LOCATION WHERE LOCATION_CODE = '"+warehouseCode+"'";
 	    return jdbcTemplate.queryForObject(sql, String.class);
 	}
 	
 	@Override
-	public String getReceivingPartyId(String locationCode) {
-		String sql = "SELECT RECEIVING_PARTY_ID FROM INVENTORY.INVENTORY_LOCATION WHERE LOCATION_CODE = '"+locationCode+"'";
+	public String getReceivingPartyId(String warehouseCode) {
+		String sql = "SELECT RECEIVING_PARTY_ID FROM INVENTORY.INVENTORY_LOCATION WHERE LOCATION_CODE = '"+warehouseCode+"'";
 	    return jdbcTemplate.queryForObject(sql, String.class);
 	}
 	
 	@Override
-	public String getSendingPartyId(String locationCode) {
-		String sql = "SELECT CONCAT(LOCATION_CODE, SENDING_PARTY_ID) FROM INVENTORY.INVENTORY_LOCATION WHERE LOCATION_CODE = '"+locationCode+"'";
+	public String getSendingPartyId(String warehouseCode) {
+		String sql = "SELECT CONCAT(LOCATION_CODE, SENDING_PARTY_ID) FROM INVENTORY.INVENTORY_LOCATION WHERE LOCATION_CODE = '"+warehouseCode+"'";
 	    return jdbcTemplate.queryForObject(sql, String.class);
 	}
 	

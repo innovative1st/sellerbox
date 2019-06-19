@@ -4,7 +4,7 @@ public class VirtualInventoryForm{
 	private int page;
 	private int size;
 	private String skuCode;
-	private String locationCode;
+	private String warehouseCode;
 	private int etailorId;
 	public int getPage() {
 		return page;
@@ -24,11 +24,11 @@ public class VirtualInventoryForm{
 	public void setSkuCode(String skuCode) {
 		this.skuCode = skuCode;
 	}
-	public String getLocationCode() {
-		return locationCode;
+	public String getWarehouseCode() {
+		return warehouseCode;
 	}
-	public void setLocationCode(String locationCode) {
-		this.locationCode = locationCode;
+	public void setWarehouseCode(String warehouseCode) {
+		this.warehouseCode = warehouseCode;
 	}
 	public int getEtailorId() {
 		return etailorId;

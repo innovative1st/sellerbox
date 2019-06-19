@@ -2,10 +2,13 @@ package com.seller.box.utils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.TimeZone;
 
 public class SBUtils {
     public static String getPropertyValue(String param) {
@@ -36,11 +39,25 @@ public class SBUtils {
     	return dateTime;
     }
     
-    public static boolean isNull(String value) {
+    public static boolean isNull(Object value) {
     	try {
-			if(value.isEmpty() || value == null) {
-				return true;
-			}
+    		if (value == null) {
+    			return true;
+    		} else {
+    			if (value instanceof String) {
+    				if(((String)value).isEmpty() || value == null) {
+    					return true;
+    				}
+    			} else if (value instanceof Integer) {
+    				if((Integer)value == 0) {
+    					return true;
+    				}
+    			} else if (value instanceof Long) {
+    				if((Long)value == 0L) {
+    					return true;
+    				}
+    			}
+    		}
 		} catch (Exception e) {
 			return true;
 		}
@@ -57,5 +74,28 @@ public class SBUtils {
 		}
     	return true;
     }
-    
+    public static Date convertGMTtoISTDate(String dateAsString){
+        Date date = null;
+        try {
+            SimpleDateFormat datef = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            //datef.setTimeZone(TimeZone.getTimeZone("GMT"));
+            date = datef.parse(dateAsString);
+            String timeZone = "IST";
+            if (date != null){
+                SimpleDateFormat sdf = new SimpleDateFormat();
+                timeZone = Calendar.getInstance().getTimeZone().getID();
+                sdf.setTimeZone(TimeZone.getTimeZone(timeZone));
+                date = sdf.parse(sdf.format(date));
+            }
+        } catch (ParseException e) {
+        	date = new Date();
+            //logger.error("ParseException :: convertGMTtoISTDate(String dateAsString)", e);
+        }
+        return date;
+    }
+
+	public static String getPhoneUrl() {
+        String phoneAddress = "http://192.168.2.171:8086"+"/sellerflex/"+"PrintServer";
+        return phoneAddress;
+	}
 }

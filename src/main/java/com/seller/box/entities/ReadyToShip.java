@@ -35,6 +35,72 @@ public class ReadyToShip implements Serializable{
 	private Date exSdDate;
 	@Column(name = "ORDER_STATUS")
 	private int orderStatus;
+	public Long getEdiOrderId() {
+		return ediOrderId;
+	}
+	public void setEdiOrderId(Long ediOrderId) {
+		this.ediOrderId = ediOrderId;
+	}
+	public int getEtailorId() {
+		return etailorId;
+	}
+	public void setEtailorId(int etailorId) {
+		this.etailorId = etailorId;
+	}
+	public String getShipmentId() {
+		return shipmentId;
+	}
+	public void setShipmentId(String shipmentId) {
+		this.shipmentId = shipmentId;
+	}
+	public String getOrderId() {
+		return orderId;
+	}
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
+	}
+	public String getWarehouseCode() {
+		return warehouseCode;
+	}
+	public void setWarehouseCode(String warehouseCode) {
+		this.warehouseCode = warehouseCode;
+	}
+	public String getPicklistNumber() {
+		return picklistNumber;
+	}
+	public void setPicklistNumber(String picklistNumber) {
+		this.picklistNumber = picklistNumber;
+	}
+	public String getTrackingId() {
+		return trackingId;
+	}
+	public void setTrackingId(String trackingId) {
+		this.trackingId = trackingId;
+	}
+	public String getCarrierName() {
+		return carrierName;
+	}
+	public void setCarrierName(String carrierName) {
+		this.carrierName = carrierName;
+	}
+	public Date getPickupDate() {
+		return pickupDate;
+	}
+	public void setPickupDate(Date pickupDate) {
+		this.pickupDate = pickupDate;
+	}
+	public Date getExSdDate() {
+		return exSdDate;
+	}
+	public void setExSdDate(Date exSdDate) {
+		this.exSdDate = exSdDate;
+	}
+	public int getOrderStatus() {
+		return orderStatus;
+	}
+	public void setOrderStatus(int orderStatus) {
+		this.orderStatus = orderStatus;
+	}
 	
 	
 }

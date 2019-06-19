@@ -99,6 +99,8 @@ public class EdiInventoryIan implements Serializable{
 	private String createdBy;
 	@Column(name = "REQUEST_ID")
 	private String requestId;
+	@Column(name = "OUTBOUND_DATE")
+	private Date outboundDate;
 	
 	public Long getIanId() {
 		return ianId;
@@ -345,5 +347,33 @@ public class EdiInventoryIan implements Serializable{
 	}
 	public void setRequestId(String requestId) {
 		this.requestId = requestId;
+	}
+	public Date getOutboundDate() {
+		return outboundDate;
+	}
+	public void setOutboundDate(Date outboundDate) {
+		this.outboundDate = outboundDate;
+	}
+	@Override
+	public String toString() {
+		return "EdiInventoryIan [ianId=" + ianId + ", etailorId=" + etailorId + ", locationCode=" + locationCode
+				+ ", transmissionDate=" + transmissionDate + ", transCreationDate=" + transCreationDate
+				+ ", transIsTest=" + transIsTest + ", transControlNumber=" + transControlNumber + ", messageCount="
+				+ messageCount + ", transStructureVersion=" + transStructureVersion + ", transReceivingPartyId="
+				+ transReceivingPartyId + ", transSendingPartyId=" + transSendingPartyId + ", messageType="
+				+ messageType + ", messageIsTest=" + messageIsTest + ", messageReceivingPartyId="
+				+ messageReceivingPartyId + ", messageSendingPartyId=" + messageSendingPartyId
+				+ ", messageStructureVersion=" + messageStructureVersion + ", messageCreationDate="
+				+ messageCreationDate + ", messageControlNumber=" + messageControlNumber + ", adjustmentType="
+				+ adjustmentType + ", itemType=" + itemType + ", itemId=" + itemId + ", skuCode=" + skuCode
+				+ ", quantity=" + quantity + ", unitOfMeasure=" + unitOfMeasure + ", vendorPartyType=" + vendorPartyType
+				+ ", vendorPartyId=" + vendorPartyId + ", adjustmentControlId=" + adjustmentControlId
+				+ ", inventoryEffectiveDateTime=" + inventoryEffectiveDateTime + ", purchaseOrderNumber="
+				+ purchaseOrderNumber + ", inventorySourceLocation=" + inventorySourceLocation
+				+ ", inventoryDestinationLocation=" + inventoryDestinationLocation + ", ianFilepath=" + ianFilepath
+				+ ", processInstanceId=" + processInstanceId + ", messageError=" + messageError + ", runStatus="
+				+ runStatus + ", txnStatus=" + txnStatus + ", isIanUpdated=" + isIanUpdated + ", invUpdateErrorMsg="
+				+ invUpdateErrorMsg + ", createdDate=" + createdDate + ", createdBy=" + createdBy + ", requestId="
+				+ requestId + ", outboundDate=" + outboundDate + "]";
 	}
 }

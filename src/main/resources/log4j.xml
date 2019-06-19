@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+ <appender name="mail" class="org.apache.log4j.net.SMTPAppender">
+  <!-- Email Configuration -->
+  <param name="Threshold" value="ERROR"/>
+  <param name="BufferSize" value="512"/>
+  <param name="SMTPProtocol" value="smtp"/>
+  <param name="SMTPHost" value="mail.reproindialtd.com"/>
+  <param name="SMTPPort" value="25"/>
+  <param name="SMTPUsername" value="rkcledi@reproindialtd.com"/>
+  <param name="SMTPPassword" value="Rkcledi@17"/>
+  <param name="From" value="rkcledi@reproindialtd.com"/>
+  <param name="To" value="yash_repro_team@yash.com"/>
+  <param name="Cc" value="murad.hussain@yash.com"/>
+  <param name="Subject" value="Error Log from Seller EDI Application"/>
+  <layout class="org.apache.log4j.PatternLayout">
+   <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+  </layout>
+  <filter class="org.apache.log4j.varia.LevelRangeFilter">
+   <param name="LevelMin" value="error"/>
+   <param name="LevelMax" value="fatal"/>
+  </filter>
+ </appender>
+ 
+ <!--appender name="file" class="org.apache.log4j.RollingFileAppender">
+	<param name="File" value="D:\\AS2_Archive\\SELLER_EDI\\service.log\\SellerEDI.log" />
+	<param name="Append" value="true" />
+	<param name="ImmediateFlush" value="true" />
+	<param name="MaxFileSize" value="5242880" />
+	<param name="MaxBackupIndex" value="100" />
+
+	<layout class="org.apache.log4j.PatternLayout">
+		<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+	</layout>
+</appender-->
+<appender name="file" class="org.apache.log4j.DailyRollingFileAppender">
+	<errorHandler class="org.apache.log4j.helpers.OnlyOnceErrorHandler" />
+	<param name="File" value="D:/AS2_Archive/SELLER_EDI/service.log/SellerBoxGTS.log"/>
+	<param name="DatePattern" value="'.'yyyy-MM-dd-HH" />
+	<layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} [ %-5p] %c{1}:%L - %m%n" />          
+	</layout>
+</appender>
+ <root>
+  <level value="DEBUG"/>
+  <appender-ref ref="mail"/>
+  <appender-ref ref="file"/>
+ </root>
+ 
+</log4j:configuration>

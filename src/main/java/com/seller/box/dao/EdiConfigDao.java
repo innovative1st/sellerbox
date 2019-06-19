@@ -11,11 +11,11 @@ public interface EdiConfigDao {
 
 	String getAdjustmentControlId();
 	
-	String getMarketplaceId(String locationCode);
+	String getMarketplaceId(String warehouseCode);
 	
-	String getReceivingPartyId(String locationCode);
+	String getReceivingPartyId(String warehouseCode);
 	
-	String getSendingPartyId(String locationCode);
+	String getSendingPartyId(String warehouseCode);
 	
-	//String getVendorPartyId(String locationCode); use getSendingPartyId() for vendorPartyId
+	//String getVendorPartyId(String warehouseCode); use getSendingPartyId() for vendorPartyId
 }

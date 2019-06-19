@@ -7,25 +7,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.seller.box.config.EdiConfig;
 import com.seller.box.dao.EdiConfigDao;
-import com.seller.box.utils.SBConstant;
-import com.seller.box.utils.SBUtils;
+
+import io.swagger.annotations.Api;
+import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
+@ApiIgnore
+@Api(tags= {"Configuration"}, description="API to retrieve or manipulate edi-config related information.", hidden = true)
 @RequestMapping("/config")
 public class EdiConfigController {
 	@Autowired
 	EdiConfigDao configDao;
-	@GetMapping(value = "/getEdiConfig", 
-			 produces = {MediaType.APPLICATION_JSON_VALUE})
-	public EdiConfig getEdiConfig(@RequestParam(name="locationCode") String locationCode, @RequestParam(name="etailorId") int etailorId, @RequestParam(name="messageType") String messageType){
-		EdiConfig config = new EdiConfig(configDao, locationCode, etailorId, messageType);
-		if(messageType.equalsIgnoreCase(SBConstant.MESSAGE_TYPE_IAN)) {
-			config.setArchiveFilepath(SBUtils.getPropertyValue("IAN_FILE_PATH"));
-		}
-		return null;
-	}
+//	@GetMapping(value = "/getEdiConfig", 
+//			 produces = {MediaType.APPLICATION_JSON_VALUE})
+//	public EdiConfig getEdiConfig(@RequestParam(name="locationCode") String locationCode, @RequestParam(name="etailorId") int etailorId, @RequestParam(name="messageType") String messageType){
+//		EdiConfig config = new EdiConfig(configDao, locationCode, etailorId, messageType);
+//		if(messageType.equalsIgnoreCase(SBConstant.MESSAGE_TYPE_IAN)) {
+//			config.setArchiveFilepath(SBUtils.getPropertyValue("IAN_FILE_PATH"));
+//		}
+//		return null;
+//	}
 	
 	@GetMapping(value = "/getEdiId", produces = {MediaType.APPLICATION_JSON_VALUE})
 	public Long getEdiIdBySequenceName(String seq_name) {

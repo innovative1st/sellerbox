@@ -22,6 +22,8 @@ public class EdiShipmentHdr implements Serializable{
 	@Id
 	@Column(name = "EDI_ORDER_ID")
 	private Long ediOrderId;
+	@Column(name = "ORDER_TYPE")
+	private String orderType;
 	@Column(name = "ERETAILOR_ID")
 	private int etailorId;
 	//@Column(name = "ERETAILOR_NAME")
@@ -137,7 +139,7 @@ public class EdiShipmentHdr implements Serializable{
 	@Column(name = "MANIFEST_ID")
 	private String manifestId;
 	@Column(name = "CARRIER_NAME")
-	private String carrierNmae;
+	private String carrierName;
 	@Column(name = "LOCAL_TIME_ZONE")
 	private String localTimeZone;
 	@Column(name = "PICKUP_DATE")
@@ -202,6 +204,8 @@ public class EdiShipmentHdr implements Serializable{
 	private String packedBy;
 	@Column(name = "IS_ACCEPTED")
 	private int isAccepted;
+	@Column(name = "IS_SIDELINE")
+	private int isSideline;
 	@Column(name = "IS_CANCELED")
 	private int isCanceled;
 	@Column(name = "IS_ASN_SEND")
@@ -212,12 +216,14 @@ public class EdiShipmentHdr implements Serializable{
 	private int isMeasureDone;
 	@Column(name = "OMS_UPLOAD_ERROR_MSG")
 	private String omsUploadErrorMsg;
+	@Column(name = "REASON_FOR_SIDELINE")
+	private String reasonForSideline;
 	@Column(name = "BATCH_ID")
 	private String batchId;
 	@Column(name = "REF_ORDER_ID")
 	private String refOrderId;
 	
-	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JoinColumn(name = "EDI_ORDER_ID", nullable = false)
 	private Set<EdiShipmentItems> ediShipmentItems;
@@ -233,6 +239,14 @@ public class EdiShipmentHdr implements Serializable{
 
 	public void setEdiOrderId(Long ediOrderId) {
 		this.ediOrderId = ediOrderId;
+	}
+
+	public String getOrderType() {
+		return orderType;
+	}
+
+	public void setOrderType(String orderType) {
+		this.orderType = orderType;
 	}
 
 	public int getEtailorId() {
@@ -675,12 +689,12 @@ public class EdiShipmentHdr implements Serializable{
 		this.manifestId = manifestId;
 	}
 
-	public String getCarrierNmae() {
-		return carrierNmae;
+	public String getCarrierName() {
+		return carrierName;
 	}
 
-	public void setCarrierNmae(String carrierNmae) {
-		this.carrierNmae = carrierNmae;
+	public void setCarrierName(String carrierName) {
+		this.carrierName = carrierName;
 	}
 
 	public String getLocalTimeZone() {
@@ -938,6 +952,14 @@ public class EdiShipmentHdr implements Serializable{
 	public void setIsCanceled(int isCanceled) {
 		this.isCanceled = isCanceled;
 	}
+	
+	public int getIsSideline() {
+		return isSideline;
+	}
+
+	public void setIsSideline(int isSideline) {
+		this.isSideline = isSideline;
+	}
 
 	public int getIsAsnSend() {
 		return isAsnSend;
@@ -971,6 +993,14 @@ public class EdiShipmentHdr implements Serializable{
 		this.omsUploadErrorMsg = omsUploadErrorMsg;
 	}
 
+	public String getReasonForSideline() {
+		return reasonForSideline;
+	}
+
+	public void setReasonForSideline(String reasonForSideline) {
+		this.reasonForSideline = reasonForSideline;
+	}
+	
 	public String getBatchId() {
 		return batchId;
 	}
@@ -995,11 +1025,44 @@ public class EdiShipmentHdr implements Serializable{
 		this.ediShipmentItems = ediShipmentItems;
 	}
 
-//	public EdiShipmentInvoice getEdiShipmentInvoice() {
-//		return ediShipmentInvoice;
-//	}
-//
-//	public void setEdiShipmentInvoice(EdiShipmentInvoice ediShipmentInvoice) {
-//		this.ediShipmentInvoice = ediShipmentInvoice;
-//	}
+	@Override
+	public String toString() {
+		return "EdiShipmentHdr [ediOrderId=" + ediOrderId + ", orderType=" + orderType + ", etailorId=" + etailorId + ", shipmentId=" + shipmentId
+				+ ", orderId=" + orderId + ", billtoEntityId=" + billtoEntityId + ", warehouseCode=" + warehouseCode
+				+ ", orderDate=" + orderDate + ", exsdDate=" + exsdDate + ", boxType=" + boxType + ", isGift=" + isGift
+				+ ", isGiftWrap=" + isGiftWrap + ", isPriorityShipment=" + isPriorityShipment + ", isCod=" + isCod
+				+ ", isInsertsRequired=" + isInsertsRequired + ", paymentType=" + paymentType + ", currencyCode="
+				+ currencyCode + ", taxRate=" + taxRate + ", taxAmount=" + taxAmount + ", shipChargeAmount="
+				+ shipChargeAmount + ", subTotal=" + subTotal + ", orderTotal=" + orderTotal + ", balanceDue="
+				+ balanceDue + ", buyerName=" + buyerName + ", buyerAttentionLine=" + buyerAttentionLine
+				+ ", buyerAddressLine1=" + buyerAddressLine1 + ", buyerCity=" + buyerCity + ", buyerState=" + buyerState
+				+ ", buyerCountryCode=" + buyerCountryCode + ", buyerPostalCode=" + buyerPostalCode + ", orderSiteId="
+				+ orderSiteId + ", shipToName=" + shipToName + ", shipToAddressLine1=" + shipToAddressLine1
+				+ ", shipToAddressLine2=" + shipToAddressLine2 + ", shipToCity=" + shipToCity + ", shipToState="
+				+ shipToState + ", shipToCountryCode=" + shipToCountryCode + ", shipToCountryName=" + shipToCountryName
+				+ ", shipPostalCode=" + shipPostalCode + ", shipToContactPhone=" + shipToContactPhone + ", shipMethod="
+				+ shipMethod + ", billToName=" + billToName + ", billToAddressLine1=" + billToAddressLine1
+				+ ", billToAddressLine2=" + billToAddressLine2 + ", billToCity=" + billToCity + ", billToState="
+				+ billToState + ", billToCountryCode=" + billToCountryCode + ", billToCountryName=" + billToCountryName
+				+ ", billPostalCode=" + billPostalCode + ", billToContactPhone=" + billToContactPhone + ", packageId="
+				+ packageId + ", trackingId=" + trackingId + ", barcode=" + barcode + ", trailorId=" + trailorId
+				+ ", loadId=" + loadId + ", canManifest=" + canManifest + ", manifestId=" + manifestId
+				+ ", carrierName=" + carrierName + ", localTimeZone=" + localTimeZone + ", pickupDate=" + pickupDate
+				+ ", labelContent=" + labelContent + ", labelFormatType=" + labelFormatType + ", labelWidthValue="
+				+ labelWidthValue + ", labelWidthUnit=" + labelWidthUnit + ", labelLengthValue=" + labelLengthValue
+				+ ", labelLengthUnit=" + labelLengthUnit + ", packageLengthValue=" + packageLengthValue
+				+ ", packageLengthUnit=" + packageLengthUnit + ", packageWidthValue=" + packageWidthValue
+				+ ", packageWidthUnit=" + packageWidthUnit + ", packageHeightValue=" + packageHeightValue
+				+ ", packageHeightUnit=" + packageHeightUnit + ", packageWeightValue=" + packageWeightValue
+				+ ", packageWeightUnit=" + packageWeightUnit + ", braaPpType=" + braaPpType + ", braaPpTypeIdentifier="
+				+ braaPpTypeIdentifier + ", braaPpQuantity=" + braaPpQuantity + ", orderStatus=" + orderStatus
+				+ ", picklistNumber=" + picklistNumber + ", noOfItems=" + noOfItems + ", fulfilmentType="
+				+ fulfilmentType + ", processInstanceId=" + processInstanceId + ", orderFilePath=" + orderFilePath
+				+ ", shipLabelFilepath=" + shipLabelFilepath + ", createdBy=" + createdBy + ", createdDate="
+				+ createdDate + ", manifestDate=" + manifestDate + ", packedBy=" + packedBy + ", isAccepted="
+				+ isAccepted + ", isCanceled=" + isCanceled + ", isSideline=" + isSideline + ", isAsnSend=" + isAsnSend + ", isOmsUpload="
+				+ isOmsUpload + ", isMeasureDone=" + isMeasureDone + ", omsUploadErrorMsg=" + omsUploadErrorMsg + ", reasonForSideline=" + reasonForSideline
+				+ ", batchId=" + batchId + ", refOrderId=" + refOrderId + ", ediShipmentItems=" + ediShipmentItems
+				+ "]";
+	}
 }

@@ -9,7 +9,7 @@ import com.seller.box.utils.SBUtils;
 public class Shipment implements Serializable{
 	private static final long serialVersionUID = 1L;
     private Long ediOrderId;													//EdiOrderId for reference
-    private String operationMode;												//Operation Mode
+    private String operationMode = SBUtils.getPropertyValue("amazon.manifest.opration.mode");//Operation Mode
     private String pickUpType = SBUtils.getPropertyValue("pickup.type");		//Pickup Type
     private Date readyToPickUpTimeUTC;
     private boolean requiresGuaranteedPromisedDelivery = Boolean.TRUE;			
@@ -32,10 +32,11 @@ public class Shipment implements Serializable{
     private String labelWidthDimensionUnit;
     private double labelWidthDimensionValue;    
     private String labelFormatType;												//Label Format type default = ZPL
-    private String amazonBarcode;
+    private String barcode;
     private String loadId;
-    private String trailerId;
-    private String trakingId;
+    private String trailorId;
+    private String trackingId;
+    private String canManifest;
     private String carrierName;
     private String invoiceFilepath;												//absolute file-path of invoice copy
     private String shiplabelFilepath;											//absolute file-path of ship-label copy
@@ -49,13 +50,24 @@ public class Shipment implements Serializable{
     private String braaPpType; 
     private String braaPpTypeIdentifier ;
     private int braaPpQuantity ;
-    private boolean orderCancelled;
-    private boolean isGift;
-    private boolean isGiftWrap;
-    private boolean isFastTrack;
+    private int orderCancelled;
+    private int isGift;
+    private int isGiftWrap;
+    private int isFastTrack;
+    private int isPaperDunnage;
+    private String shipMethod;
+    private String boxType;
+    private double packageLengthValue;
+	private String packageLengthUnit;
+	private double packageWidthValue;
+	private String packageWidthUnit;
+	private double packageHeightValue;
+	private String packageHeightUnit;
+	private double packageWeightValue;
+	private String packageWeightUnit;
+    private String manifestExceptionMessage;
     private List<ShipmentItem> shipmentItem;									//Shipment associated items list 
-	
-    public Long getEdiOrderId() {
+	public Long getEdiOrderId() {
 		return ediOrderId;
 	}
 	public void setEdiOrderId(Long ediOrderId) {
@@ -199,11 +211,11 @@ public class Shipment implements Serializable{
 	public void setLabelFormatType(String labelFormatType) {
 		this.labelFormatType = labelFormatType;
 	}
-	public String getAmazonBarcode() {
-		return amazonBarcode;
+	public String getBarcode() {
+		return barcode;
 	}
-	public void setAmazonBarcode(String amazonBarcode) {
-		this.amazonBarcode = amazonBarcode;
+	public void setBarcode(String barcode) {
+		this.barcode = barcode;
 	}
 	public String getLoadId() {
 		return loadId;
@@ -211,17 +223,23 @@ public class Shipment implements Serializable{
 	public void setLoadId(String loadId) {
 		this.loadId = loadId;
 	}
-	public String getTrailerId() {
-		return trailerId;
+	public String getTrailorId() {
+		return trailorId;
 	}
-	public void setTrailerId(String trailerId) {
-		this.trailerId = trailerId;
+	public void setTrailorId(String trailorId) {
+		this.trailorId = trailorId;
 	}
-	public String getTrakingId() {
-		return trakingId;
+	public String getTrackingId() {
+		return trackingId;
 	}
-	public void setTrakingId(String trakingId) {
-		this.trakingId = trakingId;
+	public void setTrackingId(String trackingId) {
+		this.trackingId = trackingId;
+	}
+	public String getCanManifest() {
+		return canManifest;
+	}
+	public void setCanManifest(String canManifest) {
+		this.canManifest = canManifest;
 	}
 	public String getCarrierName() {
 		return carrierName;
@@ -301,29 +319,101 @@ public class Shipment implements Serializable{
 	public void setBraaPpQuantity(int braaPpQuantity) {
 		this.braaPpQuantity = braaPpQuantity;
 	}
-	public boolean isOrderCancelled() {
+	public int getOrderCancelled() {
 		return orderCancelled;
 	}
-	public void setOrderCancelled(boolean orderCancelled) {
+	public void setOrderCancelled(int orderCancelled) {
 		this.orderCancelled = orderCancelled;
 	}
-	public boolean isGift() {
+	public int getIsGift() {
 		return isGift;
 	}
-	public void setGift(boolean isGift) {
+	public void setIsGift(int isGift) {
 		this.isGift = isGift;
 	}
-	public boolean isGiftWrap() {
+	public int getIsGiftWrap() {
 		return isGiftWrap;
 	}
-	public void setGiftWrap(boolean isGiftWrap) {
+	public void setIsGiftWrap(int isGiftWrap) {
 		this.isGiftWrap = isGiftWrap;
 	}
-	public boolean isFastTrack() {
+	public int getIsFastTrack() {
 		return isFastTrack;
 	}
-	public void setFastTrack(boolean isFastTrack) {
+	public void setIsFastTrack(int isFastTrack) {
 		this.isFastTrack = isFastTrack;
+	}
+	public int getIsPaperDunnage() {
+		return isPaperDunnage;
+	}
+	public void setIsPaperDunnage(int isPaperDunnage) {
+		this.isPaperDunnage = isPaperDunnage;
+	}
+	public String getShipMethod() {
+		return shipMethod;
+	}
+	public void setShipMethod(String shipMethod) {
+		this.shipMethod = shipMethod;
+	}
+	public String getBoxType() {
+		return boxType;
+	}
+	public void setBoxType(String boxType) {
+		this.boxType = boxType;
+	}
+	public double getPackageLengthValue() {
+		return packageLengthValue;
+	}
+	public void setPackageLengthValue(double packageLengthValue) {
+		this.packageLengthValue = packageLengthValue;
+	}
+	public String getPackageLengthUnit() {
+		return packageLengthUnit;
+	}
+	public void setPackageLengthUnit(String packageLengthUnit) {
+		this.packageLengthUnit = packageLengthUnit;
+	}
+	public double getPackageWidthValue() {
+		return packageWidthValue;
+	}
+	public void setPackageWidthValue(double packageWidthValue) {
+		this.packageWidthValue = packageWidthValue;
+	}
+	public String getPackageWidthUnit() {
+		return packageWidthUnit;
+	}
+	public void setPackageWidthUnit(String packageWidthUnit) {
+		this.packageWidthUnit = packageWidthUnit;
+	}
+	public double getPackageHeightValue() {
+		return packageHeightValue;
+	}
+	public void setPackageHeightValue(double packageHeightValue) {
+		this.packageHeightValue = packageHeightValue;
+	}
+	public String getPackageHeightUnit() {
+		return packageHeightUnit;
+	}
+	public void setPackageHeightUnit(String packageHeightUnit) {
+		this.packageHeightUnit = packageHeightUnit;
+	}
+	public double getPackageWeightValue() {
+		return packageWeightValue;
+	}
+	public void setPackageWeightValue(double packageWeightValue) {
+		this.packageWeightValue = packageWeightValue;
+	}
+	public String getPackageWeightUnit() {
+		return packageWeightUnit;
+	}
+	public void setPackageWeightUnit(String packageWeightUnit) {
+		this.packageWeightUnit = packageWeightUnit;
+	}
+	public String getManifestExceptionMessage() {
+		return manifestExceptionMessage;
+	}
+	public void setManifestExceptionMessage(String manifestExceptionMessage) {
+		this.manifestExceptionMessage = manifestExceptionMessage;
 	}
 	public List<ShipmentItem> getShipmentItem() {
 		return shipmentItem;
@@ -331,5 +421,4 @@ public class Shipment implements Serializable{
 	public void setShipmentItem(List<ShipmentItem> shipmentItem) {
 		this.shipmentItem = shipmentItem;
 	}
-    
 }
