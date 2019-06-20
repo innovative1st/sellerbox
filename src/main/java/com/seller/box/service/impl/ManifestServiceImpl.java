@@ -111,6 +111,8 @@ public class ManifestServiceImpl implements ManifestService {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			System.out.println("In preparePackageForShipping() Finally");
 		}
 	}
 

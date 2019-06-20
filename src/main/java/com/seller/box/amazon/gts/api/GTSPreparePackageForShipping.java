@@ -11,11 +11,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.xml.bind.DatatypeConverter;
-//
-//import org.apache.logging.log4j.LogManager;
-//import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -30,8 +28,7 @@ import com.seller.box.utils.SBUtils;
 
 
 public class GTSPreparePackageForShipping extends GTSService {
-	//private static final Logger logger = LogManager.getLogger(GTSPreparePackageForShipping.class);
-	private static final Logger logger = Logger.getLogger(GTSPreparePackageForShipping.class);
+	private static final Logger logger = LogManager.getLogger(GTSPreparePackageForShipping.class);
 	private PreparePackageForShippingRequest request;
 
     public void buildLabelRequest(String requestId, Shipment sh) {

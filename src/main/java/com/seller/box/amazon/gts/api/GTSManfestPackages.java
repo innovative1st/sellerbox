@@ -14,6 +14,7 @@ public class GTSManfestPackages extends GTSService {
 
         ManifestPackagesResult result= gts.manifestPackages(manifestPackagesRequest);
         ByteBuffer printableDocument = result.getPrintableDocuments();
+        System.out.println(printableDocument.toString());
 	}
 
 }
