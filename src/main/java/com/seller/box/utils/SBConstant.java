@@ -8,7 +8,7 @@ public class SBConstant {
 	public static final String VI_SEARCH_QUERY = "SELECT IL.IL_ID, IL.SKU_CODE, PC.EAN, PCD.ITEM_ID, PCD.FNSKU, PC.PRODUCT_NAME, PC.BRAND_NAME, IL.LOCATION_CODE, IL.ETAILOR_ID, IL.QUANTITY, IL.INVENTORY_STATUS, PCD.SALE_PRICE, PCD.SHIPPING_CHARGE, IL.INVENTORY_SOURCE_LOCATION, IL.ITEM_LOCATION, PC.THUMBNAIL_URL, IFNULL(PC.IS_SALEBLE, 0) AS IS_SALEBLE, IFNULL(PCD.IS_ACTIVE, 0) AS IS_ACTIVE, IFNULL(PC.AUTO_SYNC_INVENTORY, 0) AS AUTO_SYNC_INVENTORY FROM INVENTORY.EDI_INVENTORY_LEVEL IL LEFT JOIN CATALOGUE.PRODUCT_CATALOGUE PC ON IL.SKU_CODE = PC.SKU_CODE LEFT JOIN CATALOGUE.PRODUCT_CHANNEL_DETAILS PCD ON IL.SKU_CODE = PCD.SKU_CODE AND IL.ETAILOR_ID = PCD.ERETAILOR_ID ";
 	public static final String VI_COUNT_QUERY  = "SELECT COUNT(1) FROM INVENTORY.EDI_INVENTORY_LEVEL IL LEFT JOIN CATALOGUE.PRODUCT_CATALOGUE PC ON IL.SKU_CODE = PC.SKU_CODE LEFT JOIN CATALOGUE.PRODUCT_CHANNEL_DETAILS PCD ON IL.SKU_CODE = PCD.SKU_CODE AND IL.ETAILOR_ID = PCD.ERETAILOR_ID ";
 	
-	public static final String PICKLIST_SEARCH_QUERY = "SELECT PICKLIST_ID, PICKLIST_NUMBER, WAREHOUSE_CODE, ERETAILOR_ID, CREATED_ON, CREATED_BY, ASSIGNED_TO, EXSD_AFTER, EXSD_BEFORE, PICKUP_DATE, IS_FASTTRACK, IS_GIFT_MESSAGE, IS_GIFTWRAPE, SINGLE_MULTI_TYPE, FULFILMENT_TYPE, NO_OF_TOTAL_ORDER, NO_OF_PACKED_ORDER, NO_OF_CANCELLED_ORDER, NO_OF_SIDELINE_ORDER, STATUS, IS_ASN, ASN_STATUS, IS_NOTIFY FROM SELLER.EDI_PICKLIST ";
+	public static final String PICKLIST_SEARCH_QUERY = "SELECT PICKLIST_ID, PICKLIST_NUMBER, WAREHOUSE_CODE, ERETAILOR_ID, CREATED_ON, CREATED_BY, ASSIGNED_TO, EXSD_AFTER, EXSD_BEFORE, PICKUP_DATE, IS_FASTTRACK, IS_GIFT_MESSAGE, IS_GIFTWRAPE, SINGLE_MULTI_TYPE, FULFILMENT_TYPE, NO_OF_TOTAL_ORDER, NO_OF_PACKED_ORDER, NO_OF_CANCELLED_ORDER, NO_OF_SIDELINE_ORDER, STATUS, IS_SIDELINE, IS_ASN, ASN_STATUS, IS_NOTIFY FROM SELLER.EDI_PICKLIST ";
 	public static final String PICKLIST_COUNT_QUERY  = "SELECT COUNT(1) FROM SELLER.EDI_PICKLIST ";
 
 	public static final String PICKLIST_STATUS_QUERY= "SELECT PICKLIST_ID, PICKLIST_NUMBER, WAREHOUSE_CODE, ERETAILOR_ID, TOTAL_ORDER_COUNT, PACKED_ORDER_COUNT, CANCEL_ORDER_COUNT, STATUS FROM SELLER.PICKLIST_STATUS ";
@@ -136,6 +136,8 @@ public class SBConstant {
 	public static final String VAR_REQUEST_ID		= "requestId";
 	public static final String VAR_SIDELINE_REASON	= "sidelineReason";
 	public static final String VAR_REASON_FOR_SKIP	= "reasonForSkip";
+	public static final String VAR_MANIFEST_ID		= "manifestId";
+	public static final String VAR_TRACKING_ID		= "trackingId";
 	public static final String VAR_WAREHOUSE_CODE	= "warehouseCode";
 	public static final	String VAR_ORDER_TYPE		= "orderType";
 	public static final	String VAR_VENDOR_PARTY_ID	= "vendorPartyId";
@@ -150,6 +152,7 @@ public class SBConstant {
 	public static final String VAR_ORDER_IDS		= "orderIds";
 	public static final String VAR_BATCH_SIZE		= "batchSize";
 	public static final String VAR_USERNAME			= "username";
+	public static final String VAR_BOX_TYPE			= "boxType";
 	public static final String VAR_SCANED_VALUE		= "scanedValue";
 	public static final String VAR_SKU_CODE			= "skuCode";
 	public static final String VAR_FNSKU			= "fnsku";
@@ -214,4 +217,26 @@ public class SBConstant {
     public static final String PRINT_PROPERY_STATUS 	= "STATUS";
     public static final String PRINT_PROPERY_MESSAGE 	= "MESSAGE";
     /****************************************Print Constant*******************************************/
+
+    public static final int ORDER_STATUS_UNASSIGNED			= 0;
+    public static final int ORDER_STATUS_NEW				= 1;
+    public static final int ORDER_STATUS_CONFIRMED			= 2;
+    public static final int ORDER_STATUS_REJECTED			= 3;
+    public static final int ORDER_STATUS_CANCELLED			= 4;
+    public static final int ORDER_STATUS_SIDELINE			= 5;
+    public static final int ORDER_STATUS_PICKED				= 6;
+    public static final int ORDER_STATUS_PART_PICKED		= 7;
+    public static final int ORDER_STATUS_MANIFESTED			= 8;
+    public static final int ORDER_STATUS_PACKED				= 9;
+    public static final int ORDER_STATUS_DELIVERY_CREATED	= 10;
+    public static final int ORDER_STATUS_SHIPPED			= 11;
+    public static final int ORDER_STATUS_COMPLETED			= 12;
+    
+
+    public static final String ORDER_STATISTIC_TOTAL		= "T"; //Total
+    public static final String ORDER_STATISTIC_PACKED		= "P"; //Packed
+    public static final String ORDER_STATISTIC_CANCELED		= "C"; //Canceled
+    
+    
+    
 }

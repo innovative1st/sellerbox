@@ -218,6 +218,8 @@ public class EdiShipmentHdr implements Serializable{
 	private String omsUploadErrorMsg;
 	@Column(name = "REASON_FOR_SIDELINE")
 	private String reasonForSideline;
+	@Column(name = "REASON_FOR_SKIP")
+	private String reasonForSkip;
 	@Column(name = "BATCH_ID")
 	private String batchId;
 	@Column(name = "REF_ORDER_ID")
@@ -1001,6 +1003,14 @@ public class EdiShipmentHdr implements Serializable{
 		this.reasonForSideline = reasonForSideline;
 	}
 	
+	public String getReasonForSkip() {
+		return reasonForSkip;
+	}
+
+	public void setReasonForSkip(String reasonForSkip) {
+		this.reasonForSkip = reasonForSkip;
+	}
+
 	public String getBatchId() {
 		return batchId;
 	}
@@ -1061,7 +1071,8 @@ public class EdiShipmentHdr implements Serializable{
 				+ ", shipLabelFilepath=" + shipLabelFilepath + ", createdBy=" + createdBy + ", createdDate="
 				+ createdDate + ", manifestDate=" + manifestDate + ", packedBy=" + packedBy + ", isAccepted="
 				+ isAccepted + ", isCanceled=" + isCanceled + ", isSideline=" + isSideline + ", isAsnSend=" + isAsnSend + ", isOmsUpload="
-				+ isOmsUpload + ", isMeasureDone=" + isMeasureDone + ", omsUploadErrorMsg=" + omsUploadErrorMsg + ", reasonForSideline=" + reasonForSideline
+				+ isOmsUpload + ", isMeasureDone=" + isMeasureDone + ", omsUploadErrorMsg=" + omsUploadErrorMsg 
+				+ ", reasonForSideline=" + reasonForSideline + ", reasonForSkip=" + reasonForSkip
 				+ ", batchId=" + batchId + ", refOrderId=" + refOrderId + ", ediShipmentItems=" + ediShipmentItems
 				+ "]";
 	}

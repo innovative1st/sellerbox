@@ -8,5 +8,6 @@ import com.seller.box.entities.EdiPackStationInfo;
 @Repository
 public interface EdiPackStationInfoDao extends CrudRepository<EdiPackStationInfo, Long> {
 	EdiPackStationInfo findByPackStationId(Long packStationId);
+	EdiPackStationInfo findByPackStationName(String packStationName);
 	EdiPackStationInfo findByPackStationNameAndPackStationLocation(String packStationName, String packStationLocation);
 }

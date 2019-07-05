@@ -14,7 +14,6 @@ import com.amazonaws.services.gtsexternalsecurity.model.ManifestDocuments;
 import com.amazonaws.services.gtsexternalsecurity.model.ManifestPackagesByIdsResult;
 import com.amazonaws.services.gtsexternalsecurity.model.PreparePackageForShippingResult;
 import com.seller.box.amazon.gts.GTSExternalService;
-import com.seller.box.amazon.gts.GTSExternalServiceImpl;
 import com.seller.box.controller.ManifestController;
 import com.seller.box.core.ManifestResponse;
 import com.seller.box.dao.EdiShipmentDao;
@@ -38,6 +37,7 @@ public class ManifestServiceImpl implements ManifestService {
 	DocPrintService docPrintService;
 	@Autowired
 	GTSExternalService gtsExternalService;
+	//private GTSExternalSecurityService gts = null;
 	@Override
 	public void manifestOrder(ManifestResponse response, EdiShipmentHdr sh, Shipment shipment) {
 		String logPrefix  = response.getRequestId()+SBConstant.LOG_SEPRATOR;
@@ -49,19 +49,25 @@ public class ManifestServiceImpl implements ManifestService {
 			if (shipment == null) {
 				shipment = orderService.getShipmentForPacking(response.getEdiOrderId(), sh);
 			}
-            /****************************************************
-            * Calling PreparePackageForShipping API
-            ****************************************************/ 
-			preparePackageForShipping(response, sh, shipment);
+			//if(sh.getEdiOrderId() == 94)-------------//TODO for channels integration
+            if (response.getTrackingId() == null || response.getShiplabelFilepath() == null) {            	
+				/****************************************************
+		        * Calling PreparePackageForShipping API
+		        ****************************************************/
+				preparePackageForShipping(response, sh, shipment);
+			}
 		} catch (Exception e) {
 			logger.error(logPrefix+"Exception :: manifestOrder(...)", e);
-			response.setManifestExceptionMessage("Manifest failed, General exception occured...!!!");
+			response.setManifestErrorMessage("Manifest failed, General exception occured...!!!");
 			response.setManifestStatus(SBConstant.TXN_STATUS_FAILURE);
 		} finally {
 			if(response.getManifestStatus().equalsIgnoreCase(SBConstant.TXN_STATUS_SUCCESS)) {
-                menifestPackagesById(response, sh, shipment);
-			
-                callPrintableManifestForTrailer(response, sh, shipment);
+                if (!response.isCanManifest()) {
+					menifestPackagesById(response, sh, shipment);
+				}
+				if (SBUtils.isNull(response.getManifestId())) {
+					//TODO enable once live callPrintableManifestForTrailer(response, sh, shipment);
+				}
 			}
 		}
 		logger.info(logPrefix+"manifestOrder(...)"+SBConstant.LOG_SEPRATOR_WITH_END);
@@ -73,10 +79,25 @@ public class ManifestServiceImpl implements ManifestService {
 	@Override
 	public void preparePackageForShipping(ManifestResponse response, EdiShipmentHdr sh, Shipment shipment) {
 		String logPrefix  = response.getRequestId()+SBConstant.LOG_SEPRATOR;
-		
+		boolean flag = false;
 		try {
-			PreparePackageForShippingResult result = gtsExternalService.getPreparePackageForShipping(response.getRequestId(), shipment);
-			if (result != null) {
+			if (response.getTrackingId() == null || response.getShiplabelFilepath() == null) {
+				PreparePackageForShippingResult result = gtsExternalService.getPreparePackageForShipping(response.getRequestId(), shipment);
+				if(result != null) {
+					flag = true;
+					response.setManifestStatus(SBConstant.TXN_STATUS_SUCCESS);
+					response.setShipmentId(shipment.getShipmentId());
+					response.setTrackingId(shipment.getTrackingId());
+					response.setShiplabelFilepath(shipment.getShiplabelFilepath());
+					response.setBarcode(shipment.getBarcode());
+					response.setCarrierName(shipment.getCarrierName());
+					response.setPickupDate(shipment.getReadyToPickUpTimeUTC());
+				} 
+			} else {
+				flag = true;
+				response.setManifestStatus(SBConstant.TXN_STATUS_SUCCESS);
+			}
+			if (flag) {
 			    logger.info(logPrefix+"PreparePackageForShipping success, TrackingId = "+ shipment.getTrackingId());
 			    printDocuments(response, shipment);
 			    try {
@@ -88,14 +109,6 @@ public class ManifestServiceImpl implements ManifestService {
 					sh.setPackedBy(response.getManifestBy());
 					sh = ediShipmentDao.save(sh);
 					
-					response.setManifestStatus(SBConstant.TXN_STATUS_SUCCESS);
-					response.setShipmentId(shipment.getShipmentId());
-					response.setTrackingId(shipment.getTrackingId());
-					response.setBarcode(shipment.getBarcode());
-					response.setCarrierName(shipment.getCarrierName());
-					response.setPickupDate(shipment.getReadyToPickUpTimeUTC());
-					response.setShiplabelFilepath(shipment.getShiplabelFilepath());
-					
 					logger.info(logPrefix+"TrackingId		: "+shipment.getTrackingId());
 					logger.info(logPrefix+"Barcode			: "+shipment.getBarcode());
 					logger.info(logPrefix+"CarrierName		: "+shipment.getCarrierName());
@@ -105,15 +118,13 @@ public class ManifestServiceImpl implements ManifestService {
 					logger.error(logPrefix+"General Exception :: update order manifest details failed...!!!", e);
 				} 
 			} else {
-				response.setManifestExceptionMessage("Manifest failed, "+ shipment.getManifestErrorMessage());
+				response.setManifestErrorMessage("Manifest failed, "+ shipment.getManifestErrorMessage());
 				response.setManifestStatus(SBConstant.TXN_STATUS_FAILURE);
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			System.out.println("In preparePackageForShipping() Finally");
-		}
+			response.setManifestErrorMessage("Manifest failed, Skip order and retry after some time.");
+			response.setManifestStatus(SBConstant.TXN_STATUS_EXCEPTION);
+		} 
 	}
 
 	/****************************************************
@@ -122,7 +133,7 @@ public class ManifestServiceImpl implements ManifestService {
 	@Override
 	public void callPrintableManifestForTrailer(ManifestResponse response, EdiShipmentHdr sh, Shipment shipment) {
 		String logPrefix  = response.getRequestId()+SBConstant.LOG_SEPRATOR;
-		GetPrintableManifestsForTrailerResult printableManifestForTrailer =  new GTSExternalServiceImpl().getPrintableManifestForTrailer(response.getRequestId(), shipment);
+		GetPrintableManifestsForTrailerResult printableManifestForTrailer =  gtsExternalService.getPrintableManifestForTrailer(response.getRequestId(), shipment);
 		 
 		if (printableManifestForTrailer != null || true) {
 		     ManifestDocuments manifestDocuments = printableManifestForTrailer.getManifestDocumentsList().get(0);
@@ -137,6 +148,7 @@ public class ManifestServiceImpl implements ManifestService {
 						String manifestDate = SBUtils.getTxnSysDateTime();
 						 sh.setManifestDate(manifestDate);
 						 sh.setManifestId(manifestId);
+						 sh.setOrderStatus(SBConstant.ORDER_STATUS_MANIFESTED);
 						 sh = ediShipmentDao.save(sh);
 						 response.setManifestDate(manifestDate);
 						 response.setManifestId(manifestId);
@@ -147,7 +159,7 @@ public class ManifestServiceImpl implements ManifestService {
 		         }
 		     } else {
 		         //make_side_line order------------------------------------------------------------------------------------------------:)
-		    	 response.setManifestExceptionMessage("Manifest failed, "+ shipment.getManifestErrorMessage());
+		    	 response.setManifestErrorMessage("Manifest failed, "+ shipment.getManifestErrorMessage());
 		    	 response.setManifestStatus(SBConstant.TXN_STATUS_FAILURE);
 		     }
 		 }
@@ -159,9 +171,10 @@ public class ManifestServiceImpl implements ManifestService {
 	@Override
 	public void menifestPackagesById(ManifestResponse response, EdiShipmentHdr sh, Shipment shipment) {
 		String logPrefix = response.getRequestId()+SBConstant.LOG_SEPRATOR;
-		ManifestPackagesByIdsResult manifest = new GTSExternalServiceImpl().menifestPackagesByIds(response.getRequestId(), shipment);
+		ManifestPackagesByIdsResult manifest = gtsExternalService.menifestPackagesByIds(response.getRequestId(), shipment);
 		if (manifest != null) {
 		    logger.info(logPrefix+"isCanManifest() : " + manifest.isCanManifest());
+		    response.setCanManifest(manifest.isCanManifest());
 		    if(manifest.isCanManifest()) {
 		    	try {
 					sh.setCanManifest("true");
@@ -229,4 +242,17 @@ public class ManifestServiceImpl implements ManifestService {
 			response.setGiftPrintStatus(SBConstant.PRINT_STATUS_NA);
 		}
 	}
+	
+//    private GTSExternalSecurityService getGTSService() {
+//        logger.info("GTSService Start : " + new Date());
+//		String AWSAccessKey = SBUtils.getPropertyValue("AWSAccessKey");
+//		String AWSSecretKey = SBUtils.getPropertyValue("AWSSecretKey");
+//		String GTSEndpointURL = SBUtils.getPropertyValue("GTSEndpointURL");
+//		AWSCredentials awsCredentials = new BasicAWSCredentials(AWSAccessKey, AWSSecretKey);
+//		ClientConfiguration clientConfiguration = new ClientConfiguration();
+//		GTSExternalSecurityService gts = new GTSExternalSecurityServiceClient(awsCredentials, clientConfiguration);
+//		gts.setEndpoint(GTSEndpointURL);
+//        logger.info("GTSService End : " + new Date());
+//		return gts;
+//    }
 }

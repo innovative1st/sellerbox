@@ -58,9 +58,13 @@ public class GTSPreparePackageForShipping extends GTSService {
             System.out.println(ase.getErrorType());
             System.out.println(ase.getStatusCode());
             System.out.println(ase.getMessage());
-            String[] err = ase.getMessage().split(":");
-            String errm = err[err.length - 1].trim();
-            sh.setManifestErrorMessage(errm);
+            if(ase.getMessage().toLowerCase().contains("shipmentinfo.packageinfo.weight.weightunit")) {
+            	sh.setManifestErrorMessage("Shipment Info : Weight measurment issue, Please correct the measurment and re-manifest.");
+            } else {
+	            String[] err = ase.getMessage().split(":");
+	            String errm = err[err.length - 1].trim();
+	            sh.setManifestErrorMessage(errm);
+            }
             logger.error(requestId+SBConstant.LOG_SEPRATOR+"AmazonServiceException Occured, callPreparePackageForShipping(EdiOrderId "+sh.getEdiOrderId()+")", ase);
         } catch (AmazonClientException ace) {
             System.out.println(ace.getMessage());

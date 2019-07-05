@@ -1,6 +1,7 @@
 package com.seller.box.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +27,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.seller.box.core.OF;
+import com.seller.box.core.PendingItems;
 import com.seller.box.core.ServiceResponse;
 import com.seller.box.dao.EdiConfigDao;
 import com.seller.box.dao.EdiShipmentDao;
@@ -39,6 +40,7 @@ import com.seller.box.entities.ShipmentHdrWithItem;
 import com.seller.box.exception.NoDataFoundException;
 import com.seller.box.exception.SellerClientException;
 import com.seller.box.exception.SellerServiceException;
+import com.seller.box.exception.SellerServiceException.ErrorType;
 import com.seller.box.form.PicklistSearchForm;
 import com.seller.box.form.Shipment;
 import com.seller.box.service.OrderService;
@@ -467,7 +469,7 @@ public class OrderController {
 	@ApiOperation(value = "Make shipment sideline")
 	@PostMapping(value = "/sideline", 
 			consumes = {MediaType.ALL_VALUE})
-	public ResponseEntity<Map<String, String>> sidelineShipment(@RequestParam(name="guid") String guid, 
+	public ResponseEntity<Map<String, Object>> sidelineShipment(@RequestParam(name="guid") String guid, 
 												@RequestParam(name="token") String token, 
 												@RequestParam(name = "RequestBody") String body){
 		logger.info("sidelineShipment(...)-------START");
@@ -475,8 +477,9 @@ public class OrderController {
 		int etailorId		= 0; 
 		String warehouseCode= null;
 		Long ediOrderId 	= 0L;
+		String picklistNumber=null;
 		String sidelineReason = null;
-		Map<String, String> status 		= null;
+		Map<String, Object> response = new HashMap<String, Object>();
 		try {
 			bodyMap = new ObjectMapper().readValue(body, HashMap.class);
 			if(bodyMap.containsKey(SBConstant.VAR_ETAILOR_ID)) {
@@ -496,6 +499,9 @@ public class OrderController {
 					logger.error("NumberFormatException while parsing ediOrderId.");
 				}
 			}
+			if(bodyMap.containsKey(SBConstant.VAR_PICKLIST_NUMBER)) {
+				picklistNumber = (String) bodyMap.get(SBConstant.VAR_PICKLIST_NUMBER);
+			}
 			if(bodyMap.containsKey(SBConstant.VAR_SIDELINE_REASON)) {
 				sidelineReason = (String) bodyMap.get(SBConstant.VAR_SIDELINE_REASON);
 			}
@@ -503,7 +509,7 @@ public class OrderController {
 			bodyMap = new HashMap<String, Object>();
 			logger.error("IOException :: sidelineShipment(...)", e);
 		}
-		if(SBUtils.isNull(etailorId) || SBUtils.isNull(warehouseCode) || SBUtils.isNull(sidelineReason)) {
+		if(SBUtils.isNull(etailorId) || SBUtils.isNull(warehouseCode) || SBUtils.isNull(sidelineReason) || SBUtils.isNull(picklistNumber)) {
 			StringBuffer args = new StringBuffer();
 			if(SBUtils.isNull(warehouseCode)) {
 				args.append(SBConstant.VAR_WAREHOUSE_CODE);
@@ -513,6 +519,9 @@ public class OrderController {
 			}
 			if(SBUtils.isNull(sidelineReason)) {
 				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_SIDELINE_REASON);
+			}
+			if(SBUtils.isNull(picklistNumber)) {
+				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_PICKLIST_NUMBER);
 			}
 			logger.error("SellerClientException :: sidelineShipment(...)", "Following arguments "+args.toString()+" is mandarory to make sideline shipment.");
 			NoDataFoundException sse = new NoDataFoundException("Following arguments "+args.toString()+" is mandarory to make sideline shipment.");
@@ -524,7 +533,7 @@ public class OrderController {
 		} else {
 			String result = null;
 			if(!ediOrderId.equals(0L)) {
-				result = orderService.makeSidelineShipment(ediOrderId, sidelineReason);
+				result = orderService.makeSidelineShipment(orderDao, ediOrderId, sidelineReason, guid);
 			}
 			if(result == null) {
 				NoDataFoundException sse = new NoDataFoundException("Unable to make sideline shipment for ediOrderId = "+ediOrderId);
@@ -535,10 +544,15 @@ public class OrderController {
 				logger.error("NoDataFoundException :: sidelineShipment(...)", sse.toString());
 				throw sse;
 			} else {
-				status = new HashMap<String, String>();
-				status.put("status", result);
+				if(result == SBConstant.TXN_STATUS_SUCCESS) {
+					response = orderDao.findPicklistStatus(String.valueOf(etailorId), warehouseCode, picklistNumber);
+					
+				} else {
+					response.put("status", SBConstant.TXN_STATUS_FAILURE);
+					response.put("message", "Unable to make sideline, Please skip the order and connect with support team.");
+				}
 				logger.info("sidelineShipment(...)-------END");
-				return new ResponseEntity<Map<String, String>>(status, HttpStatus.OK);
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 			}
 		}
 	}
@@ -622,6 +636,90 @@ public class OrderController {
 			}
 		}
 	}
+	
+	@SuppressWarnings("unchecked")
+	@ApiOperation(value = "Complete shipment process")
+	@PostMapping(value = "/completionOfShipment", 
+			consumes = {MediaType.ALL_VALUE})
+	public ResponseEntity<Map<String, Object>> completionOfShipment(@RequestParam(name="guid") String guid, 
+												@RequestParam(name="token") String token, 
+												@RequestParam(name = "RequestBody") String body){
+		logger.info("completionOfShipment(...)-------START");
+		Map<String, Object> bodyMap = null;
+		int etailorId		= 0; 
+		String warehouseCode= null;
+		Long ediOrderId 	= 0L;
+		String trackingId	= null;
+		String requestId 	= UUID.randomUUID().toString();
+		Map<String, Object> response = new HashMap<String, Object>();
+		try {
+			bodyMap = new ObjectMapper().readValue(body, HashMap.class);
+			if(bodyMap.containsKey(SBConstant.VAR_ETAILOR_ID)) {
+				try {
+					etailorId = Integer.parseInt(String.valueOf(bodyMap.get(SBConstant.VAR_ETAILOR_ID)));
+				} catch (NumberFormatException e) {
+					logger.error("NumberFormatException while parsing etailorId.");
+				}
+			}
+			if(bodyMap.containsKey(SBConstant.VAR_WAREHOUSE_CODE)) {
+				warehouseCode = (String) bodyMap.get(SBConstant.VAR_WAREHOUSE_CODE);
+			}
+			if(bodyMap.containsKey(SBConstant.VAR_EDI_ORDER_ID)) {
+				try {
+					ediOrderId = Long.parseLong(String.valueOf(bodyMap.get(SBConstant.VAR_EDI_ORDER_ID)));
+				} catch (NumberFormatException e) {
+					logger.error("NumberFormatException while parsing ediOrderId.");
+				}
+			}
+			if(bodyMap.containsKey(SBConstant.VAR_TRACKING_ID)) {
+				trackingId = String.valueOf(bodyMap.get(SBConstant.VAR_TRACKING_ID));
+			}
+		} catch (IOException e) {
+			bodyMap = new HashMap<String, Object>();
+			logger.error("IOException :: completionOfShipment(...)", e);
+		}
+		if(SBUtils.isNull(etailorId) || SBUtils.isNull(warehouseCode) || SBUtils.isNull(ediOrderId) || SBUtils.isNull(trackingId)) {
+			StringBuffer args = new StringBuffer();
+			if(SBUtils.isNull(warehouseCode)) {
+				args.append(SBConstant.VAR_WAREHOUSE_CODE);
+			}
+			if(SBUtils.isNull(etailorId)) {
+				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_ETAILOR_ID);
+			}
+			if(SBUtils.isNull(ediOrderId)) {
+				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_EDI_ORDER_ID);
+			}
+			if(SBUtils.isNull(trackingId)) {
+				args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_TRACKING_ID);
+			}
+			logger.error("SellerClientException :: completionOfShipment(...)", "Following arguments "+args.toString()+" is mandarory to complete shipment process.");
+			NoDataFoundException sse = new NoDataFoundException("Following arguments "+args.toString()+" is mandarory to complete shipment process.");
+			sse.setErrorType(SBConstant.ErrorType.ARGUMENT_MISSING.name());
+			sse.setErrorCode(SBConstant.ERROR_CODE_ARGUMENT_MISSING);
+			sse.setRequestId(requestId);
+			sse.setServiceName("/order/completionOfShipment");
+			throw sse;
+		} else {
+			Map<String, Object> result = new HashMap<String, Object>();
+			if(!ediOrderId.equals(0L)) {
+				result = orderService.completionOfShipment(requestId, ediOrderId, warehouseCode, etailorId, trackingId, guid);
+			}
+			if(result == null) {
+				NoDataFoundException sse = new NoDataFoundException("Unable to complete shipment process for ediOrderId = "+ediOrderId);
+				sse.setErrorType(SBConstant.ErrorType.DATA_NOT_FOUND.name());
+				sse.setErrorCode(SBConstant.ERROR_CODE_DATA_NOT_FOUND);
+				sse.setRequestId(requestId);
+				sse.setServiceName("/order/completionOfShipment");
+				logger.error("NoDataFoundException :: skipShipment(...)", sse.toString());
+				throw sse;
+			} else {
+				response.putAll(result);
+				logger.info("completionOfShipment(...)-------END");
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			}
+		}
+	}
+	
 	
 	@SuppressWarnings({ "unchecked", "unused" })
 	@ApiOperation(value = "API For Synchronous Creating Order")
@@ -1016,4 +1114,56 @@ public class OrderController {
 		}
 		return new ResponseEntity<ServiceResponse>(response, HttpStatus.OK);
 	}
+	
+	
+	@SuppressWarnings("unchecked")
+	@ApiOperation(value = "Get pending items against picklist number")
+	@PostMapping(value = "/pendingItemList", 
+			consumes = {MediaType.ALL_VALUE})
+	public ResponseEntity<List<PendingItems>> pendingItemListAgainstPicklist(@RequestParam(name="guid") String guid, 
+												@RequestParam(name="token") String token, 
+												@RequestParam(name = "RequestBody") String body){
+		logger.info("pendingItemListAgainstPicklist(...)"+SBConstant.LOG_SEPRATOR_WITH_START);
+		Map<String, Object> bodyMap = null;
+		String picklistNumber		= null;
+		String warehouseCode		= null;
+		List<PendingItems> pendingItems = new ArrayList<PendingItems>();
+		try {
+			bodyMap = new ObjectMapper().readValue(body, HashMap.class);
+			if(bodyMap.containsKey(SBConstant.VAR_PICKLIST_NUMBER)) {
+				picklistNumber = (String) bodyMap.get(SBConstant.VAR_PICKLIST_NUMBER);
+			}
+			if(bodyMap.containsKey(SBConstant.VAR_WAREHOUSE_CODE)) {
+				warehouseCode = (String) bodyMap.get(SBConstant.VAR_WAREHOUSE_CODE);
+			}
+			if(SBUtils.isNull(warehouseCode) || SBUtils.isNull(picklistNumber)) {
+				StringBuffer args = new StringBuffer();
+				if(SBUtils.isNull(warehouseCode)) {
+					args.append(SBConstant.VAR_WAREHOUSE_CODE);
+				}
+				if(SBUtils.isNull(picklistNumber)) {
+					args.append(args.length() > 0 ? ", " : "").append(SBConstant.VAR_PICKLIST_NUMBER);
+				}
+				SellerServiceException sse = new SellerServiceException("Following arguments "+args.toString()+" is mandarory to to get list of pending items.");
+				sse.setErrorType(ErrorType.CLIENT_ERROR);
+				sse.setErrorCode(SBConstant.ERROR_CODE_ARGUMENT_MISSING);
+				sse.setRequestId(UUID.randomUUID().toString());
+				sse.setServiceName("/order/pendingItemList");
+				throw sse;
+			} else {
+				pendingItems = orderDao.getPendingItemAgainstPicklist(picklistNumber);
+				logger.info("pendingItemListAgainstPicklist(...)"+SBConstant.LOG_SEPRATOR_WITH_END);
+			}
+		} catch (IOException e) {
+			logger.error("IOException :: pendingItemListAgainstPicklist(...)", e);
+			SellerServiceException sse = new SellerServiceException(e.getLocalizedMessage());
+			sse.setErrorType(ErrorType.CLIENT_ERROR);
+			sse.setErrorCode(SBConstant.ERROR_CODE_CLIENT_ERROR);
+			sse.setRequestId(UUID.randomUUID().toString());
+			sse.setServiceName("/order/pendingItemList");
+			throw sse;
+		}
+		return new ResponseEntity<List<PendingItems>>(pendingItems, HttpStatus.OK);
+	}
+	
 }

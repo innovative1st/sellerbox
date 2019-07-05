@@ -53,6 +53,8 @@ public class EdiPicklist  implements Serializable{
 	private int noOfSidelineOrder;
 	@Column(name = "STATUS")
 	private String status;
+	@Column(name = "IS_SIDELINE")
+	private int isSideline;
 	@Column(name = "IS_ASN")
 	private int isASN;
 	@Column(name = "ASN_STATUS")
@@ -178,6 +180,12 @@ public class EdiPicklist  implements Serializable{
 	}
 	public void setStatus(String status) {
 		this.status = status;
+	}
+	public int getIsSideline() {
+		return isSideline;
+	}
+	public void setIsSideline(int isSideline) {
+		this.isSideline = isSideline;
 	}
 	public int getIsASN() {
 		return isASN;
