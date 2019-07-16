@@ -964,89 +964,89 @@ public class OrderServiceImpl implements OrderService {
 
 	@Override
 	public Map<String, Object> completionOfShipment(String requestId, Long ediOrderId, String warehouseCode, int etailorId, String trackingId, String guid) {
-			Map<String, Object> response = new HashMap<String, Object>();
-	String logPrefix = requestId+SBConstant.LOG_SEPRATOR;
-	EdiShipmentHdr sh = ediShipmentDao.findByEdiOrderId(ediOrderId);
-	response.put("etailorId", etailorId);
-	response.put("warehouseCode", warehouseCode);
-	boolean isManifested = true;
-	if(sh != null) {
-		if(trackingId.equals(sh.getShipmentId()) || trackingId.equals(sh.getBarcode()) || trackingId.equals(sh.getTrackingId())) {
-			if(SBUtils.isNull(sh.getManifestId())) {
-				Shipment shipment = this.getShipmentForPacking(ediOrderId, sh);
-				GetPrintableManifestsForTrailerResult printableManifestForTrailer =  gtsExternalService.getPrintableManifestForTrailer(requestId, shipment);
-				if (printableManifestForTrailer != null) {
-				     ManifestDocuments manifestDocuments = printableManifestForTrailer.getManifestDocumentsList().get(0);
-				     String manifestId = manifestDocuments.getManifestId();
-				     logger.info(logPrefix+"ManifestId : "+manifestDocuments.getManifestId()+" of EdiOrderId : " + shipment.getEdiOrderId());
-				     if (manifestId != null) {
-				         logger.info(logPrefix+"ManifestId : " + manifestId);
-				         if(manifestId != null) {
-				        	 try {
-								String manifestDate = SBUtils.getTxnSysDateTime();
-								sh.setManifestDate(manifestDate);
-								sh.setManifestId(manifestId);
-								sh.setOrderStatus(SBConstant.ORDER_STATUS_MANIFESTED);
-								sh = ediShipmentDao.save(sh);
-								logger.info("Manifest success, Manifest Id = " + manifestId + " updated in DB...!!!!");
+		Map<String, Object> response = new HashMap<String, Object>();
+		String logPrefix = requestId+SBConstant.LOG_SEPRATOR;
+		EdiShipmentHdr sh = ediShipmentDao.findByEdiOrderId(ediOrderId);
+		response.put("etailorId", etailorId);
+		response.put("warehouseCode", warehouseCode);
+		boolean isManifested = true;
+		if(sh != null) {
+			if(trackingId.equals(sh.getShipmentId()) || trackingId.equals(sh.getBarcode()) || trackingId.equals(sh.getTrackingId())) {
+				if(SBUtils.isNull(sh.getManifestId())) {
+					//TODO enable once live
+					/**********************************
+					Shipment shipment = this.getShipmentForPacking(ediOrderId, sh);
+					GetPrintableManifestsForTrailerResult printableManifestForTrailer =  gtsExternalService.getPrintableManifestForTrailer(requestId, shipment);
+					if (printableManifestForTrailer != null) {
+					     ManifestDocuments manifestDocuments = printableManifestForTrailer.getManifestDocumentsList().get(0);
+					     String manifestId = manifestDocuments.getManifestId();
+					     logger.info(logPrefix+"ManifestId : "+manifestDocuments.getManifestId()+" of EdiOrderId : " + shipment.getEdiOrderId());
+					     if (manifestId != null) {
+					         logger.info(logPrefix+"ManifestId : " + manifestId);
+					         if(manifestId != null) {
+					        	 try {
+									String manifestDate = SBUtils.getTxnSysDateTime();
+									sh.setManifestDate(manifestDate);
+									sh.setManifestId(manifestId);
+									sh.setOrderStatus(SBConstant.ORDER_STATUS_MANIFESTED);
+									sh = ediShipmentDao.save(sh);
+									logger.info("Manifest success, Manifest Id = " + manifestId + " updated in DB...!!!!");
+								} catch (Exception e) {
+									isManifested = false;
+									logger.error("Manifest failed, Manifest Id = " + manifestId + " update in DB failed...!!!!", e);
+								}
+					         }
+					     } else {
+					         //make_side_line order------------------------------------------------------------------------------------------------:)
+					    	 response.put("message", "Manifest failed, "+ shipment.getManifestErrorMessage());
+					    	 response.put("status", SBConstant.TXN_STATUS_FAILURE);
+					    	 isManifested = false;
+					     }
+					}*************/
+				}
+				if(isManifested) {
+					try {
+						sh.setOrderStatus(SBConstant.ORDER_STATUS_PACKED);
+						sh.setPackedBy(guid);
+						sh = ediShipmentDao.save(sh);
+						EdiPicklist pl = picklistDao.findByPicklistNumber(sh.getPicklistNumber());
+						if(pl != null) {
+							response.put("picklistId", pl.getPicklistId());
+							response.put("picklistNumber", pl.getPicklistNumber());
+							try {
+								int totalOrder 	= orderDao.orderStatisticAgainstPicklistNumber(sh.getPicklistNumber(), SBConstant.ORDER_STATISTIC_TOTAL);
+								int totalPacked	= orderDao.orderStatisticAgainstPicklistNumber(sh.getPicklistNumber(), SBConstant.ORDER_STATISTIC_PACKED);
+								int totalCancel = orderDao.orderStatisticAgainstPicklistNumber(sh.getPicklistNumber(), SBConstant.ORDER_STATISTIC_CANCELED);
+								
+								response.put("total", totalOrder);
+								response.put("packed", totalPacked);
+								response.put("canceled", totalCancel);
+								
+								pl.setNoOfTotalOrder(totalOrder);
+								pl.setNoOfPackedOrder(totalPacked);
+								pl.setNoOfCancelledOrder(totalCancel);
+								if (totalOrder == (totalPacked + totalCancel)) {
+								    pl.setStatus(SBConstant.PICKLIST_STATUS_COMPLETED);
+								    response.put("status", SBConstant.PICKLIST_STATUS_COMPLETED);
+								} else {
+								    pl.setStatus(SBConstant.PICKLIST_STATUS_ACTIVE);
+								    response.put("status", SBConstant.PICKLIST_STATUS_ACTIVE);
+								}
+								pl = picklistDao.save(pl);
 							} catch (Exception e) {
-								isManifested = false;
-								logger.error("Manifest failed, Manifest Id = " + manifestId + " update in DB failed...!!!!", e);
-							}
-				         }
-				     } else {
-				         //make_side_line order------------------------------------------------------------------------------------------------:)
-				    	 response.put("message", "Manifest failed, "+ shipment.getManifestErrorMessage());
-				    	 response.put("status", SBConstant.TXN_STATUS_FAILURE);
-				    	 isManifested = false;
-				     }
-				}
-			}
-			if(isManifested) {
-				try {
-					sh.setOrderStatus(SBConstant.ORDER_STATUS_PACKED);
-					sh.setPackedBy(guid);
-					sh = ediShipmentDao.save(sh);
-					EdiPicklist pl = picklistDao.findByPicklistNumber(sh.getPicklistNumber());
-					if(pl != null) {
-						response.put("picklistId", pl.getPicklistId());
-						response.put("picklistNumber", pl.getPicklistNumber());
-						try {
-							int totalOrder 	= orderDao.orderStatisticAgainstPicklistNumber(sh.getPicklistNumber(), SBConstant.ORDER_STATISTIC_TOTAL);
-							int totalPacked	= orderDao.orderStatisticAgainstPicklistNumber(sh.getPicklistNumber(), SBConstant.ORDER_STATISTIC_PACKED);
-							int totalCancel = orderDao.orderStatisticAgainstPicklistNumber(sh.getPicklistNumber(), SBConstant.ORDER_STATISTIC_CANCELED);
-							
-							response.put("total", totalOrder);
-							response.put("packed", totalPacked);
-							response.put("canceled", totalCancel);
-							
-							pl.setNoOfTotalOrder(totalOrder);
-							pl.setNoOfPackedOrder(totalPacked);
-							pl.setNoOfCancelledOrder(totalCancel);
-							if (totalOrder == (totalPacked + totalCancel)) {
-							    pl.setStatus(SBConstant.PICKLIST_STATUS_COMPLETED);
-							    response.put("status", SBConstant.PICKLIST_STATUS_COMPLETED);
-							} else {
-							    pl.setStatus(SBConstant.PICKLIST_STATUS_ACTIVE);
-							    response.put("status", SBConstant.PICKLIST_STATUS_ACTIVE);
-							}
-							pl = picklistDao.save(pl);
-						} catch (Exception e) {
-							logger.error("Error while updating picklist = "+ sh.getPicklistNumber()+SBConstant.LOG_SEPRATOR+e.getMessage());
-						} 
+								logger.error("Error while updating picklist = "+ sh.getPicklistNumber()+SBConstant.LOG_SEPRATOR+e.getMessage());
+							} 
+						}
+					} catch (Exception e) {
+						logger.error("Error while updating status PACKED for ediOrderId = "+ ediOrderId);
 					}
-				} catch (Exception e) {
-					logger.error("Error while updating status PACKED for ediOrderId = "+ ediOrderId);
-				} finally {
-					
 				}
-			}
-			
-			ServiceResponse ofrResponse = this.createOfr(requestId, ediOrderId, 13);
-			logger.info("OFR#13 Response = " + ofrResponse.toString());
-		} //TODO else required
-	}
-	return response;
+				
+				ServiceResponse ofrResponse = this.createOfr(requestId, ediOrderId, 13);
+				logger.info("OFR#13 Response = " + ofrResponse.toString());
+			} //TODO else required
+		}
+		return response;
 	}
 }
  
