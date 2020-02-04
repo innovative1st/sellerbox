@@ -26,8 +26,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @Configuration
 @EnableSwagger2
 @PropertySource("classpath:swagger.yaml")
-@ComponentScan(basePackageClasses = {OrderController.class, OrderCancellationController.class,
-		 OrderReturnsController.class, ProductController.class, InventoryController.class})
+@ComponentScan(basePackageClasses = {OrderController.class, OrderCancellationController.class, OrderReturnsController.class, ProductController.class, InventoryController.class})
 public class SwaggerConfig extends WebMvcConfigurationSupport {
 	@Value("${swagger.info.version}")
 	private String version;

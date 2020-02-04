@@ -1,10 +1,13 @@
 package com.seller.box.service.impl;
 
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -15,6 +18,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import com.amazonaws.services.gtsexternalsecurity.model.GetPrintableManifestsForTrailerResult;
+import com.amazonaws.services.gtsexternalsecurity.model.ManifestDocuments;
+import com.seller.box.amazon.gts.GTSExternalService;
 import com.seller.box.config.EdiConfig;
 import com.seller.box.core.OF;
 import com.seller.box.core.OFItem;
@@ -22,6 +28,7 @@ import com.seller.box.core.OutboundMessage;
 import com.seller.box.core.ServiceResponse;
 import com.seller.box.dao.EdiBoxTypeDao;
 import com.seller.box.dao.EdiConfigDao;
+import com.seller.box.dao.EdiPicklistDao;
 import com.seller.box.dao.EdiShipmentAsnDao;
 import com.seller.box.dao.EdiShipmentDao;
 import com.seller.box.dao.EdiShipmentOfrDao;
@@ -29,12 +36,14 @@ import com.seller.box.dao.OrderDao;
 import com.seller.box.dao.ProductMeasurementDao;
 import com.seller.box.dao.ProductSearchDao;
 import com.seller.box.entities.EdiBoxType;
+import com.seller.box.entities.EdiPicklist;
 import com.seller.box.entities.EdiShipmentAsn;
 import com.seller.box.entities.EdiShipmentHdr;
 import com.seller.box.entities.EdiShipmentItems;
 import com.seller.box.entities.EdiShipmentOfr;
 import com.seller.box.entities.ProductDetails;
 import com.seller.box.entities.ProductMeasurements;
+import com.seller.box.form.PicklistSearchForm;
 import com.seller.box.form.Shipment;
 import com.seller.box.form.ShipmentItem;
 import com.seller.box.service.InventoryService;
@@ -47,6 +56,8 @@ public class OrderServiceImpl implements OrderService {
 	private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 	@Autowired
 	KafkaUtils kafkaUtils;
+	@Autowired
+	OrderDao orderDao;
 	@Autowired
 	EdiConfigDao ediConfigDao;
 	@Autowired
@@ -68,7 +79,10 @@ public class OrderServiceImpl implements OrderService {
 	@Autowired
 	EdiShipmentDao shipmentDao;
 	@Autowired
-	OrderDao orderDao;
+	EdiPicklistDao picklistDao;
+	@Autowired
+	GTSExternalService gtsExternalService;
+	
 	@Override
 	@Async
 	public void createOrderAsync(String requestId, OF of, String orderType, int etailorId, Long ediOrderId, String user) {
@@ -362,6 +376,19 @@ public class OrderServiceImpl implements OrderService {
 	@Async
 	public void measurmentUpdateAsync(String requestId, Long ediOrderId) {
 		logger.info(requestId + SBConstant.LOG_SEPRATOR + "measurmentUpdateAsync(String requestId, Long ediOrderId)----START");
+		measurmentUpdate(requestId, ediOrderId);
+		logger.info(requestId + SBConstant.LOG_SEPRATOR + "measurmentUpdateAsync(String requestId, Long ediOrderId)----END");
+	}
+
+	@Override
+	public void measurmentUpdateSync(String requestId, Long ediOrderId) {
+		logger.info(requestId + SBConstant.LOG_SEPRATOR + "measurmentUpdateSync(String requestId, Long ediOrderId)----START");
+		measurmentUpdate(requestId, ediOrderId);
+		logger.info(requestId + SBConstant.LOG_SEPRATOR + "measurmentUpdateSync(String requestId, Long ediOrderId)----END");
+	}
+	
+	private void measurmentUpdate(String requestId, Long ediOrderId) {
+		logger.info(requestId + SBConstant.LOG_SEPRATOR + "measurmentUpdate(String requestId, Long ediOrderId)----START");
 		try {
 			EdiShipmentHdr shipment = ediShipmentDao.findByEdiOrderId(ediOrderId);
 			if(shipment != null) {
@@ -437,7 +464,7 @@ public class OrderServiceImpl implements OrderService {
 		} catch (Exception e) {
 			logger.error(requestId + SBConstant.LOG_SEPRATOR + "measurmentUpdateAsync(String requestId, Long ediOrderId)", e);
 		}
-		logger.info(requestId + SBConstant.LOG_SEPRATOR + "measurmentUpdateAsync(String requestId, Long ediOrderId)----END");
+		logger.info(requestId + SBConstant.LOG_SEPRATOR + "measurmentUpdate(String requestId, Long ediOrderId)----END");
 	}
 	
 	@Override
@@ -742,7 +769,7 @@ public class OrderServiceImpl implements OrderService {
 				shipment.setTrackingId(sh.getTrackingId());
 				shipment.setCanManifest(sh.getCanManifest());
 				shipment.setCarrierName(sh.getCarrierName());
-				shipment.setInvoiceFilepath(orderDao.getInvoiceFilepath(sh.getShipmentId()));
+				shipment.setInvoiceFilepath(this.getInvoiceFilepath(sh.getShipmentId()));
 				shipment.setShiplabelFilepath(sh.getShipLabelFilepath());
 				shipment.setManifestId(sh.getManifestId());
 				shipment.setManifestErrorMessage(null);
@@ -801,18 +828,66 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	public String makeSidelineShipment(Long ediOrderId, String sidelineReason) {
+	public String makeSidelineShipment(OrderDao orderDao, Long ediOrderId, String sidelineReason, String guid) {
 		logger.info("makeSidelineShipment(Long ediOrderId, String sidelineReason)"+SBConstant.LOG_SEPRATOR_WITH_START);
 		String status = SBConstant.TXN_STATUS_SUCCESS;
+		String sql = null;
+		Long picklistId = 0L;
+		String picklistNumber = "";
+		String warehouseCode  = null;
+		int etailorId  		  = 0;
 		try {
-			String sql = "UPDATE SELLER.EDI_SHIPMENT_HDR SET IS_SIDELINE = IFNULL(IS_SIDELINE, 0)+1, REASON_FOR_SIDELINE = '"+sidelineReason+"' WHERE EDI_ORDER_ID = "+ ediOrderId;
-			int count = jdbcTemplate.update(sql);
-			if(count == 0) {
-				status = SBConstant.TXN_STATUS_NO_DATA;
+			EdiShipmentHdr sh = ediShipmentDao.findByEdiOrderId(ediOrderId);
+			if(sh != null) {
+				warehouseCode = sh.getWarehouseCode();
+				etailorId     = sh.getEtailorId();
+			}
+			EdiPicklist pl = null;
+			sql = "SELECT COUNT(1) FROM SELLER.EDI_PICKLIST WHERE DATE_FORMAT(CREATED_ON, '%D-%M-%Y') = DATE_FORMAT(NOW(), '%D-%M-%Y') AND IS_SIDELINE = 1 AND WAREHOUSE_CODE = '"+warehouseCode+"'";
+			Long count = jdbcTemplate.queryForObject(sql, Long.class);
+			if(count == 1) {
+				sql = "SELECT PICKLIST_ID FROM SELLER.EDI_PICKLIST WHERE DATE_FORMAT(CREATED_ON, '%D-%M-%Y') = DATE_FORMAT(NOW(), '%D-%M-%Y') AND IS_SIDELINE = 1 AND WAREHOUSE_CODE = '"+warehouseCode+"'";
+				picklistId = jdbcTemplate.queryForObject(sql, Long.class);
+				pl = picklistDao.findByPicklistId(picklistId);
+				picklistNumber = pl.getPicklistNumber();
+			} else {
+				try {
+					PicklistSearchForm criteria = new PicklistSearchForm();
+					criteria.setEtailorId(etailorId);
+					criteria.setWarehouseCode(warehouseCode);
+					criteria.setOrderIds(String.valueOf(ediOrderId));
+					criteria.setUsername(guid);
+					criteria.setSideline(true);
+					criteria.setBatchSize(1);
+					Map<String, String> response = orderDao.createPicklist(criteria);
+					if(response != null) {
+						if(response.containsKey(SBConstant.TXN_RESPONSE_PICKLIST_NUMBER)) {
+							picklistNumber = response.get(SBConstant.TXN_RESPONSE_PICKLIST_NUMBER);
+						}
+					}
+				} catch (Exception e) {
+					logger.error("Unable to create sideline picklist");
+				}
+			}
+			try {
+				sh.setPicklistNumber(picklistNumber);
+				sh.setIsSideline(sh.getIsSideline()+1);
+				sh.setReasonForSideline(sidelineReason);
+				sh = ediShipmentDao.save(sh);
+			} catch (Exception e) {
+				sql = "UPDATE SELLER.EDI_SHIPMENT_HDR SET PICKLIST_NUMBER='"+picklistNumber+"', IS_SIDELINE = IFNULL(IS_SIDELINE, 0)+1, REASON_FOR_SIDELINE = '"+sidelineReason+"' WHERE EDI_ORDER_ID = "+ ediOrderId;
+				int row = jdbcTemplate.update(sql);
+				if(row == 0) {
+					status = SBConstant.TXN_STATUS_NO_DATA;
+				}
 			}
 		} catch (Exception e) {
 			status = SBConstant.TXN_STATUS_EXCEPTION;
 			logger.error("Exception :: makeSidelineShipment(Long ediOrderId, String sidelineReason)", e);
+		} finally {
+			if(status == SBConstant.TXN_STATUS_SUCCESS) {
+				
+			}
 		}
 		
 		logger.info("makeSidelineShipment(Long ediOrderId, String sidelineReason)"+SBConstant.LOG_SEPRATOR_WITH_END);
@@ -824,7 +899,7 @@ public class OrderServiceImpl implements OrderService {
 		logger.info("skipShipment(Long ediOrderId, String reasonForSkip)"+SBConstant.LOG_SEPRATOR_WITH_START);
 		String status = SBConstant.TXN_STATUS_SUCCESS;
 		try {
-			String sql = "UPDATE SELLER.EDI_SHIPMENT_HDR SET IS_SKIP = IFNULL(IS_SKIP, 0)+1 WHERE EDI_ORDER_ID = "+ ediOrderId;
+			String sql = "UPDATE SELLER.EDI_SHIPMENT_HDR SET IS_SKIP = IFNULL(IS_SKIP, 0)+1, REASON_FOR_SKIP = '"+reasonForSkip+"' WHERE EDI_ORDER_ID = "+ ediOrderId;
 			int count = jdbcTemplate.update(sql);
 			if(count == 0) {
 				status = SBConstant.TXN_STATUS_NO_DATA;
@@ -836,6 +911,142 @@ public class OrderServiceImpl implements OrderService {
 		
 		logger.info("skipShipment(Long ediOrderId, String reasonForSkip)"+SBConstant.LOG_SEPRATOR_WITH_END);
 		return status;
+	}
+	
+	@Override
+	public String getInvoiceFilepath(String shipmentId) {
+		String invoceFilepath = null;
+		try {
+			String query = "SELECT INVOICE_FILE_PATH FROM SELLER.EDI_SHIPMENT_INVOICE WHERE PURCHASE_ORDER_NUMBER = '"+shipmentId+"'";
+			invoceFilepath = jdbcTemplate.queryForObject(query, String.class);
+			
+			if (SBUtils.isNull(invoceFilepath)) {
+				invoceFilepath = this.getInvoiceFilepathFromSource(shipmentId);
+			}
+		} catch (Exception e) {
+			invoceFilepath = this.getInvoiceFilepathFromSource(shipmentId);
+		}
+		return invoceFilepath;
+	}
+
+	private String getInvoiceFilepathFromSource(String shipmentId) {
+		String invFilepath = null;
+		String absInvFilepath = null;
+		try {
+			invFilepath = SBUtils.getPropertyValue("seller.edi.invoice.path");
+			if (!invFilepath.endsWith("\\")) {
+				invFilepath = invFilepath + "\\";
+			}
+			boolean isAvailable = false;
+			File invoice = new File(invFilepath);
+			if (invoice.exists()) {
+				File[] invoiceList = invoice.listFiles();
+				for (int i = 0; i < invoiceList.length; i++) {
+					if (invoiceList[i].getName().startsWith(shipmentId)) {
+						isAvailable = true;
+						invFilepath = invFilepath + invoiceList[i].getName();
+						break;
+					}
+				}
+				if (!isAvailable) {
+					invFilepath = null;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (SBUtils.isNotNull(invFilepath)) {
+				absInvFilepath = invFilepath;
+			}
+		}
+		return absInvFilepath;
+	}
+
+	@Override
+	public Map<String, Object> completionOfShipment(String requestId, Long ediOrderId, String warehouseCode, int etailorId, String trackingId, String guid) {
+			Map<String, Object> response = new HashMap<String, Object>();
+	String logPrefix = requestId+SBConstant.LOG_SEPRATOR;
+	EdiShipmentHdr sh = ediShipmentDao.findByEdiOrderId(ediOrderId);
+	response.put("etailorId", etailorId);
+	response.put("warehouseCode", warehouseCode);
+	boolean isManifested = true;
+	if(sh != null) {
+		if(trackingId.equals(sh.getShipmentId()) || trackingId.equals(sh.getBarcode()) || trackingId.equals(sh.getTrackingId())) {
+			if(SBUtils.isNull(sh.getManifestId())) {
+				Shipment shipment = this.getShipmentForPacking(ediOrderId, sh);
+				GetPrintableManifestsForTrailerResult printableManifestForTrailer =  gtsExternalService.getPrintableManifestForTrailer(requestId, shipment);
+				if (printableManifestForTrailer != null) {
+				     ManifestDocuments manifestDocuments = printableManifestForTrailer.getManifestDocumentsList().get(0);
+				     String manifestId = manifestDocuments.getManifestId();
+				     logger.info(logPrefix+"ManifestId : "+manifestDocuments.getManifestId()+" of EdiOrderId : " + shipment.getEdiOrderId());
+				     if (manifestId != null) {
+				         logger.info(logPrefix+"ManifestId : " + manifestId);
+				         if(manifestId != null) {
+				        	 try {
+								String manifestDate = SBUtils.getTxnSysDateTime();
+								sh.setManifestDate(manifestDate);
+								sh.setManifestId(manifestId);
+								sh.setOrderStatus(SBConstant.ORDER_STATUS_MANIFESTED);
+								sh = ediShipmentDao.save(sh);
+								logger.info("Manifest success, Manifest Id = " + manifestId + " updated in DB...!!!!");
+							} catch (Exception e) {
+								isManifested = false;
+								logger.error("Manifest failed, Manifest Id = " + manifestId + " update in DB failed...!!!!", e);
+							}
+				         }
+				     } else {
+				         //make_side_line order------------------------------------------------------------------------------------------------:)
+				    	 response.put("message", "Manifest failed, "+ shipment.getManifestErrorMessage());
+				    	 response.put("status", SBConstant.TXN_STATUS_FAILURE);
+				    	 isManifested = false;
+				     }
+				}
+			}
+			if(isManifested) {
+				try {
+					sh.setOrderStatus(SBConstant.ORDER_STATUS_PACKED);
+					sh.setPackedBy(guid);
+					sh = ediShipmentDao.save(sh);
+					EdiPicklist pl = picklistDao.findByPicklistNumber(sh.getPicklistNumber());
+					if(pl != null) {
+						response.put("picklistId", pl.getPicklistId());
+						response.put("picklistNumber", pl.getPicklistNumber());
+						try {
+							int totalOrder 	= orderDao.orderStatisticAgainstPicklistNumber(sh.getPicklistNumber(), SBConstant.ORDER_STATISTIC_TOTAL);
+							int totalPacked	= orderDao.orderStatisticAgainstPicklistNumber(sh.getPicklistNumber(), SBConstant.ORDER_STATISTIC_PACKED);
+							int totalCancel = orderDao.orderStatisticAgainstPicklistNumber(sh.getPicklistNumber(), SBConstant.ORDER_STATISTIC_CANCELED);
+							
+							response.put("total", totalOrder);
+							response.put("packed", totalPacked);
+							response.put("canceled", totalCancel);
+							
+							pl.setNoOfTotalOrder(totalOrder);
+							pl.setNoOfPackedOrder(totalPacked);
+							pl.setNoOfCancelledOrder(totalCancel);
+							if (totalOrder == (totalPacked + totalCancel)) {
+							    pl.setStatus(SBConstant.PICKLIST_STATUS_COMPLETED);
+							    response.put("status", SBConstant.PICKLIST_STATUS_COMPLETED);
+							} else {
+							    pl.setStatus(SBConstant.PICKLIST_STATUS_ACTIVE);
+							    response.put("status", SBConstant.PICKLIST_STATUS_ACTIVE);
+							}
+							pl = picklistDao.save(pl);
+						} catch (Exception e) {
+							logger.error("Error while updating picklist = "+ sh.getPicklistNumber()+SBConstant.LOG_SEPRATOR+e.getMessage());
+						} 
+					}
+				} catch (Exception e) {
+					logger.error("Error while updating status PACKED for ediOrderId = "+ ediOrderId);
+				} finally {
+					
+				}
+			}
+			
+			ServiceResponse ofrResponse = this.createOfr(requestId, ediOrderId, 13);
+			logger.info("OFR#13 Response = " + ofrResponse.toString());
+		} //TODO else required
+	}
+	return response;
 	}
 }
  

@@ -1,18 +1,10 @@
 package com.seller.box.amazon.gts;
 
 
-import java.util.Date;
-
-import org.apache.log4j.Logger;
-//import org.apache.logging.log4j.LogManager;
-//import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.gtsexternalsecurity.GTSExternalSecurityService;
-import com.amazonaws.services.gtsexternalsecurity.GTSExternalSecurityServiceClient;
 import com.amazonaws.services.gtsexternalsecurity.model.CancelPackageShippingResult;
 import com.amazonaws.services.gtsexternalsecurity.model.DuplicateTrailerException;
 import com.amazonaws.services.gtsexternalsecurity.model.GetDocumentForContainerResult;
@@ -37,19 +29,15 @@ import com.seller.box.utils.SBUtils;
 
 @Service
 public class GTSExternalServiceImpl implements GTSExternalService {
-	//private static final Logger logger = LogManager.getLogger(GTSExternalServiceImpl.class);
-	private static final Logger logger = Logger.getLogger(GTSExternalServiceImpl.class);
+	private static final Logger logger = LogManager.getLogger(GTSExternalServiceImpl.class);
 	int retryCount = Integer.parseInt(SBUtils.getPropertyValue("menifest.retry.count"));
-    /* (non-Javadoc)
-	 * @see com.seller.box.amazon.gts.GTSExternalService#getPreparePackageForShipping(java.lang.String, com.seller.box.form.Shipment)
-	 */
+
     @Override
 	public PreparePackageForShippingResult getPreparePackageForShipping(String requestId, Shipment sh){
         logger.info(requestId+SBConstant.LOG_SEPRATOR+"getPreparePackageForShipping(...) for EDI_ORDER_ID = "+ sh.getEdiOrderId()+" ------------ START");
         PreparePackageForShippingResult result = null;
         for (int i = 0; i < retryCount; i++) {
             try {
-            	getGTSService();
                 logger.info(requestId+SBConstant.LOG_SEPRATOR+"Shipment Id : " + sh.getShipmentId());
                 GTSPreparePackageForShipping gtsLabel = new GTSPreparePackageForShipping();
                 gtsLabel.buildLabelRequest(requestId, sh);
@@ -66,9 +54,6 @@ public class GTSExternalServiceImpl implements GTSExternalService {
         return result;
     }
     
-    /* (non-Javadoc)
-	 * @see com.seller.box.amazon.gts.GTSExternalService#getShippingLabelForReprinting(com.seller.box.form.Shipment)
-	 */
     @Override
 	public GetShippingLabelsForReprintingResult getShippingLabelForReprinting(Shipment sh){
         GetShippingLabelsForReprintingResult result = null;
@@ -92,9 +77,6 @@ public class GTSExternalServiceImpl implements GTSExternalService {
         return result;
     }
     
-    /* (non-Javadoc)
-	 * @see com.seller.box.amazon.gts.GTSExternalService#getDocumentForContainerResult(com.seller.box.form.Shipment)
-	 */
     @Override
 	public GetDocumentForContainerResult getDocumentForContainerResult(Shipment sh){
         GetDocumentForContainerResult containerRequest =  null;
@@ -108,9 +90,6 @@ public class GTSExternalServiceImpl implements GTSExternalService {
         return containerRequest;
     }
     
-    /* (non-Javadoc)
-	 * @see com.seller.box.amazon.gts.GTSExternalService#menifestPackagesByIds(java.lang.String, com.seller.box.form.Shipment)
-	 */
     @Override
 	public ManifestPackagesByIdsResult menifestPackagesByIds(String requestId, Shipment sh){
         logger.info(requestId+SBConstant.LOG_SEPRATOR+"menifestPackagesByIds(...) for EDI_ORDER_ID = "+ sh.getEdiOrderId()+SBConstant.LOG_SEPRATOR_WITH_START);
@@ -152,9 +131,6 @@ public class GTSExternalServiceImpl implements GTSExternalService {
         return result;
     }
     
-    /* (non-Javadoc)
-	 * @see com.seller.box.amazon.gts.GTSExternalService#gtsCancelPackageShipping(com.seller.box.form.Shipment)
-	 */
     @Override
 	public CancelPackageShippingResult gtsCancelPackageShipping(Shipment sh){
         CancelPackageShippingResult result = null;
@@ -168,9 +144,6 @@ public class GTSExternalServiceImpl implements GTSExternalService {
         return result;
     }
     
-    /* (non-Javadoc)
-	 * @see com.seller.box.amazon.gts.GTSExternalService#getPrintableManifestForTrailer(java.lang.String, com.seller.box.form.Shipment)
-	 */
     @Override
 	public GetPrintableManifestsForTrailerResult getPrintableManifestForTrailer(String requestId, Shipment sh){
         GetPrintableManifestsForTrailerResult result = null;
@@ -195,24 +168,6 @@ public class GTSExternalServiceImpl implements GTSExternalService {
             }
         }
         return result;
-    }
-    
-    public GTSExternalSecurityService getGTSService() {
-        logger.info("GTSService Start : " + new Date());
-        GTSExternalSecurityService gts = null;
-        try {
-			String AWSAccessKey = SBUtils.getPropertyValue("AWSAccessKey");
-			String AWSSecretKey = SBUtils.getPropertyValue("AWSSecretKey");
-			String GTSEndpointURL = SBUtils.getPropertyValue("GTSEndpointURL");
-			AWSCredentials awsCredentials = new BasicAWSCredentials(AWSAccessKey, AWSSecretKey);
-			ClientConfiguration clientConfiguration = new ClientConfiguration();
-			gts = new GTSExternalSecurityServiceClient(awsCredentials, clientConfiguration);
-			gts.setEndpoint(GTSEndpointURL);
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		}
-        logger.info("GTSService End : " + new Date());
-        return gts;
     }
 }
 

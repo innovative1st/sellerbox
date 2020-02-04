@@ -10,7 +10,7 @@ public class ManifestResponse implements Serializable{
 	private String requestId;
 	private String manifestStatus;
 	private String manifestErrorMessage;
-	private String manifestExceptionMessage;
+	//private String manifestExceptionMessage;
 	private String carrierName;
 	private String barcode;
 	private String trackingId;
@@ -57,12 +57,12 @@ public class ManifestResponse implements Serializable{
 	public void setManifestErrorMessage(String manifestErrorMessage) {
 		this.manifestErrorMessage = manifestErrorMessage;
 	}
-	public String getManifestExceptionMessage() {
-		return manifestExceptionMessage;
-	}
-	public void setManifestExceptionMessage(String manifestExceptionMessage) {
-		this.manifestExceptionMessage = manifestExceptionMessage;
-	}
+//	public String getManifestExceptionMessage() {
+//		return manifestExceptionMessage;
+//	}
+//	public void setManifestExceptionMessage(String manifestExceptionMessage) {
+//		this.manifestExceptionMessage = manifestExceptionMessage;
+//	}
 	public String getCarrierName() {
 		return carrierName;
 	}
@@ -162,8 +162,7 @@ public class ManifestResponse implements Serializable{
 	@Override
 	public String toString() {
 		return "ManifestResponse [ediOrderId=" + ediOrderId + ", shipmentId=" + shipmentId + ", requestId=" + requestId
-				+ ", manifestStatus=" + manifestStatus + ", manifestErrorMessage=" + manifestErrorMessage
-				+ ", manifestExceptionMessage=" + manifestExceptionMessage + ", carrierName=" + carrierName
+				+ ", manifestStatus=" + manifestStatus + ", manifestErrorMessage=" + manifestErrorMessage + ", carrierName=" + carrierName
 				+ ", barcode=" + barcode + ", trackingId=" + trackingId + ", pickupDate=" + pickupDate + ", manifestBy="
 				+ manifestBy + ", manifestDate=" + manifestDate + ", canManifest=" + canManifest + ", manifestId="
 				+ manifestId + ", shiplabelFilepath=" + shiplabelFilepath + ", shiplabelPrintStatus="

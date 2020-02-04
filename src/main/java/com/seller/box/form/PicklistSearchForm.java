@@ -16,6 +16,7 @@ public class PicklistSearchForm {
 	private int batchSize;
 	private String username;
 	private String orderIds;
+	private boolean isSideline;
 	public int getEtailorId() {
 		return etailorId;
 	}
@@ -111,5 +112,11 @@ public class PicklistSearchForm {
 	}
 	public void setOrderIds(String orderIds) {
 		this.orderIds = orderIds;
+	}
+	public boolean isSideline() {
+		return isSideline;
+	}
+	public void setSideline(boolean isSideline) {
+		this.isSideline = isSideline;
 	}
 }

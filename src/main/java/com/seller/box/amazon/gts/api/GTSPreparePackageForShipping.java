@@ -11,11 +11,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.xml.bind.DatatypeConverter;
-//
-//import org.apache.logging.log4j.LogManager;
-//import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -30,8 +28,7 @@ import com.seller.box.utils.SBUtils;
 
 
 public class GTSPreparePackageForShipping extends GTSService {
-	//private static final Logger logger = LogManager.getLogger(GTSPreparePackageForShipping.class);
-	private static final Logger logger = Logger.getLogger(GTSPreparePackageForShipping.class);
+	private static final Logger logger = LogManager.getLogger(GTSPreparePackageForShipping.class);
 	private PreparePackageForShippingRequest request;
 
     public void buildLabelRequest(String requestId, Shipment sh) {
@@ -61,9 +58,13 @@ public class GTSPreparePackageForShipping extends GTSService {
             System.out.println(ase.getErrorType());
             System.out.println(ase.getStatusCode());
             System.out.println(ase.getMessage());
-            String[] err = ase.getMessage().split(":");
-            String errm = err[err.length - 1].trim();
-            sh.setManifestErrorMessage(errm);
+            if(ase.getMessage().toLowerCase().contains("shipmentinfo.packageinfo.weight.weightunit")) {
+            	sh.setManifestErrorMessage("Shipment Info : Weight measurment issue, Please correct the measurment and re-manifest.");
+            } else {
+	            String[] err = ase.getMessage().split(":");
+	            String errm = err[err.length - 1].trim();
+	            sh.setManifestErrorMessage(errm);
+            }
             logger.error(requestId+SBConstant.LOG_SEPRATOR+"AmazonServiceException Occured, callPreparePackageForShipping(EdiOrderId "+sh.getEdiOrderId()+")", ase);
         } catch (AmazonClientException ace) {
             System.out.println(ace.getMessage());

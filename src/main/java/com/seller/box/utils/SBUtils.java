@@ -45,7 +45,7 @@ public class SBUtils {
     			return true;
     		} else {
     			if (value instanceof String) {
-    				if(((String)value).isEmpty() || value == null) {
+    				if(((String)value).trim().isEmpty() || value == null) {
     					return true;
     				}
     			} else if (value instanceof Integer) {

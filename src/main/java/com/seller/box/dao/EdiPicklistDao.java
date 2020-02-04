@@ -7,5 +7,6 @@ import com.seller.box.entities.EdiPicklist;
 
 @Repository
 public interface EdiPicklistDao extends CrudRepository<EdiPicklist, Long>{
-
+	EdiPicklist findByPicklistNumber(String picklistNumber);
+	EdiPicklist findByPicklistId(Long picklistId);
 }

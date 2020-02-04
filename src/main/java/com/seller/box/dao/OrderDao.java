@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.data.repository.query.Param;
 
+import com.seller.box.core.PendingItems;
 import com.seller.box.entities.EdiPicklist;
 import com.seller.box.entities.ReadyToShip;
 import com.seller.box.entities.ShipmentHdrWithItem;
@@ -22,6 +23,9 @@ public interface OrderDao {
 	Map<String, Object> findPicklistStatus(String etailorId, String warehouseCode, String scanedValue);
 
 	Long getEdiOrderIdForPacking(int etailorId, String warehouseCode, String picklistNumber, String ean);
-
-	String getInvoiceFilepath(String shipmentId);
+	
+	int orderStatisticAgainstPicklistNumber(String picklistNumber, String type);
+	
+	List<PendingItems> getPendingItemAgainstPicklist(String picklistNumber);
+	//Map<String, Object> completionOfShipment(String requestId, Long ediOrderId, String warehouseCode, int etailorId, String trackingId, String guid);
 }
