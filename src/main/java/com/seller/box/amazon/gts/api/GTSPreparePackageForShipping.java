@@ -10,7 +10,7 @@ import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.xml.bind.DatatypeConverter;
+//import javax.xml.bind.DatatypeConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -85,11 +85,11 @@ public class GTSPreparePackageForShipping extends GTSService {
         logger.info("ShippingInfo: " + result.getShippingInfo());
         logger.info("Tracking Id: " + result.getTrackingId());
         logger.info("Amazon Barcode: " + result.getAmazonBarcode());
-        //logger.info("Label Stram: " + result.getLabels().get(0).getLabelStream().toString());
         ByteBuffer labelStream = result.getLabels().get(0).getLabelStream();
+        //logger.info("Label Stram: " + labelStream.toString());
         //logger.info("LabelStream size" + labelStream.array().length);
-        String labelString = DatatypeConverter.printBase64Binary(labelStream.array());
-        logger.info("Label = " + labelString);
+        //String labelString = DatatypeConverter.printBase64Binary(labelStream.array());
+        //logger.info("Label = " + labelString);
         String shipLabelPath = null;
         if(result.getLabels() != null){
             shipLabelPath = SBUtils.getPropertyValue("seller.edi.ship.label.path");
@@ -101,7 +101,7 @@ public class GTSPreparePackageForShipping extends GTSService {
             if(!new File(shipLabelPath).exists()) {
             	new File(shipLabelPath).mkdirs();
             }
-            shipLabelPath = shipLabelPath + shipmentId+".txt";
+            shipLabelPath = shipLabelPath + shipmentId+"_"+result.getTrackingId()+".txt";
             File file = new File(shipLabelPath);
             if(file.exists()){
                 file.delete();

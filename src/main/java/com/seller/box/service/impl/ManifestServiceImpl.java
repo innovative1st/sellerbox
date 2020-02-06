@@ -54,7 +54,8 @@ public class ManifestServiceImpl implements ManifestService {
 				/****************************************************
 		        * Calling PreparePackageForShipping API
 		        ****************************************************/
-				preparePackageForShipping(response, sh, shipment);
+            	//TODO enable once live
+            	//preparePackageForShipping(response, sh, shipment);
 			}
 		} catch (Exception e) {
 			logger.error(logPrefix+"Exception :: manifestOrder(...)", e);
@@ -66,7 +67,8 @@ public class ManifestServiceImpl implements ManifestService {
 					menifestPackagesById(response, sh, shipment);
 				}
 				if (SBUtils.isNull(response.getManifestId())) {
-					//TODO enable once live callPrintableManifestForTrailer(response, sh, shipment);
+					//TODO enable once live 
+					//callPrintableManifestForTrailer(response, sh, shipment);
 				}
 			}
 		}
